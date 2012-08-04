@@ -1,3 +1,3 @@
 INCLUDEFLAGS=-I/usr/local/include -I./include
-SRCS=GCObject.cpp
+SRCS=GCType.cpp GCTypeVisitors.cpp
 CFLAGS+=${INCLUDEFLAGS}
