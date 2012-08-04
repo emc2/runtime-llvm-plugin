@@ -38,18 +38,21 @@
  */
 class GCTypeVisitor {
 public:
+  virtual bool begin(const GCType* ty);
   virtual bool begin(const StructGCType* ty);
   virtual bool begin(const FuncPtrGCType* ty);
   virtual bool begin(const ArrayGCType* ty);
   virtual bool begin(const NativePtrGCType* ty);
 
+  virtual void end(const GCType* ty);
   virtual void end(const StructGCType* ty);
   virtual void end(const FuncPtrGCType* ty);
   virtual void end(const ArrayGCType* ty);
   virtual void end(const NativePtrGCType* ty);
 
+  virtual void visit(const GCType* ty);
   virtual void visit(const GCPtrGCType* ty);
-  virtual void visit(const AtomicGCType* ty);
+  virtual void visit(const PrimGCType* ty);
 };
 
 /*!
@@ -61,18 +64,21 @@ public:
  */
 template<typename T> class GCTypeContextVisitor {
 public:
+  virtual bool begin(const GCType* ty, T& ctx, T& parent);
   virtual bool begin(const StructGCType* ty, T& ctx, T& parent);
   virtual bool begin(const FuncPtrGCType* ty, T& ctx, T& parent);
   virtual bool begin(const ArrayGCType* ty, T& ctx, T& parent);
   virtual bool begin(const NativePtrGCType* ty, T& ctx, T& parent);
 
+  virtual void end(const GCType* ty, T& ctx, T& parent);
   virtual void end(const StructGCType* ty, T& ctx, T& parent);
   virtual void end(const FuncPtrGCType* ty, T& ctx, T& parent);
   virtual void end(const ArrayGCType* ty, T& ctx, T& parent);
   virtual void end(const NativePtrGCType* ty, T& ctx, T& parent);
 
+  virtual void visit(const GCType* ty, T& parent);
   virtual void visit(const GCPtrGCType* ty, T& parent);
-  virtual void visit(const AtomicGCType* ty, T& parent);
+  virtual void visit(const PrimGCType* ty, T& parent);
 };
 
 #endif
