@@ -30,8 +30,8 @@
 
 #include "llvm/Type.h"
 #include "llvm/Metadata.h"
-
-class GCTypeVisitor;
+#include "llvm/Module.h"
+#include "GCTypeVisitors.h"
 
 /*!
  * This is the base type of a shadow hierarchy which represents the
@@ -45,16 +45,34 @@ class GCType {
 private:
   unsigned flags;
 
-  inline void setMutability(unsigned mutability) const {
+  inline void setTypeID(unsigned typeID) {
+    flags = (flags & ~0xe) | ((typeID & 0x7) << 1);
+  }
+
+  inline void setMutability(unsigned mutability) {
     flags = (flags & ~0x1) | mutability;
   }
 
+  inline unsigned getTypeID() const {
+    return (flags >> 1) & 0x7;
+  }
+
 protected:
-  GCType(unsigned mutability = MutableID) {
+  GCType(unsigned typeID,
+	 unsigned mutability = MutableID) {
+    setTypeID(typeID);
     setMutability(mutability);
   }
 
 public:
+  enum {
+    StructTypeID,
+    FuncPtrTypeID,
+    PrimTypeID,
+    GCPtrTypeID,
+    NativePtrTypeID,
+    ArrayTypeID
+  };
 
   enum {
     ImmutableID,
@@ -70,12 +88,14 @@ public:
    */
   inline unsigned mutability() const { return (flags & ~0x1); }
 
-  virtual void accept(GCTypeVisitor* v) = 0;
-  template <typename T> virtual void accept(GCTypeContextVisitor<T>*, T&) = 0;
+  virtual void accept(GCTypeVisitor& v) const = 0;
 
-  static const GCType* get(LLVMContext &C,
+  static const GCType* get(const llvm::Module* M,
 			   const llvm::MDNode* md,
 			   unsigned mutability = MutableID);
+
+  template <typename T> void accept(GCTypeContextVisitor<T>& v,
+				    T& ctx) const;
 };
 
 /*!
@@ -83,30 +103,33 @@ public:
  *
  * \brief A primitive type.
  */
-class PrimGCType : public GCType{
+class PrimGCType : public GCType {
 private:
   const llvm::Type *const TypeRef;
 
-  AtomicGCType(const llvm::Type* TypeRef,
-	       unsigned mutability = MutableID)
-    : TypeRef(TypeRef), GCType(mutability) {}
+  PrimGCType(const llvm::Type* TypeRef,
+	     unsigned mutability = MutableID)
+    : TypeRef(TypeRef), GCType(PrimTypeID, mutability) {}
 
-  static GCType* unitGCTy = NULL;
+  static const PrimGCType* unitGCTy;
 public:
-  virtual void accept(GCTypeVisitor* v);
-  template <typename T> virtual void accept(GCTypeContextVisitor<T>*, T&);
+  virtual void accept(GCTypeVisitor& v) const;
 
   static const PrimGCType* getUnit();
-  static const PrimGCType* getInt(LLVMContext &C,
+  static const PrimGCType* getInt(const llvm::Module* M,
 				  const llvm::MDNode* md,
 				  unsigned mutability);
-  static const PrimGCType* getFloat(LLVMContext &C,
+  static const PrimGCType* getFloat(const llvm::Module* M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
-  static const PrimGCType* getNamed(LLVMContext &C,
+  static const PrimGCType* getNamed(const llvm::Module* M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
 
+  template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
+					  T& ctx) const {
+    v.visit(this, ctx);
+  }
 };
 
 /*!
@@ -123,31 +146,41 @@ private:
   ArrayGCType(const GCType* Elem,
 	      unsigned nelems = 0,
 	      unsigned mutability = MutableID)
-    : GCType(mutability), Elem(Elem), nelems(nelems) {}
+    : GCType(ArrayTypeID, mutability), Elem(Elem), nelems(nelems) {}
 public:
-  virtual void accept(GCTypeVisitor* v);
-  template <typename T> virtual void accept(GCTypeContextVisitor<T>*, T&);
+  virtual void accept(GCTypeVisitor& v) const;
 
   inline const GCType* getElemTy() const { return Elem; }
   inline bool isSized() const { return nelems != 0; }
   inline unsigned getNumElems() const { return nelems; }
 
-  static const ArrayGCType* get(LLVMContext &C,
+  template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
+					  T& parent) const {
+    T ctx;
+    const bool descend = v.begin(this, ctx, parent);
+
+    if(descend)
+      Elem->accept<T>(v, ctx);
+
+    v.end(this, ctx, parent);
+  }
+
+  static const ArrayGCType* get(const llvm::Module* M,
 				const llvm::MDNode* md,
 				unsigned mutability);
 };
 
 class PtrGCType : public GCType {
-private:
+protected:
   const llvm::Type* const Inner;
 
-protected:
-  PtrGCType(const llvm::Type* Inner,
+  PtrGCType(unsigned typeID,
+	    const llvm::Type* Inner,
 	    unsigned mutability = MutableID)
-    : GCType(mutability), Inner(Inner) {}
+    : GCType(typeID, mutability), Inner(Inner) {}
 
 public:
-  inline const GCType* getElemTy() const { return Inner; }
+  inline const llvm::Type* getElemTy() const { return Inner; }
 };
 
 /*!
@@ -160,15 +193,19 @@ class NativePtrGCType : public PtrGCType {
 private:
   NativePtrGCType(const llvm::Type* Inner,
 		  unsigned mutability = MutableID)
-    : PtrGCType(Inner, mutability) {}
+    : PtrGCType(NativePtrTypeID, Inner, mutability) {}
 
 public:
-  virtual void accept(GCTypeVisitor* v);
-  template <typename T> virtual void accept(GCTypeContextVisitor<T>*, T&);
+  virtual void accept(GCTypeVisitor& v) const;
 
-  static const NativePtrGCType* get(LLVMContext &C,
+  template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
+					  T& ctx) const {
+    v.visit(this, ctx);
+  }
+
+  static const NativePtrGCType* get(const llvm::Module* M,
 				    const llvm::MDNode* md,
-				    unsigned mobility);
+				    unsigned mutability);
 };
 
 /*!
@@ -184,17 +221,12 @@ private:
 	      unsigned mutability = MutableID,
 	      unsigned mobility = MobileID,
 	      unsigned ptrclass = StrongPtrID)
-    : PtrGCType(Inner, mutability, mobility), ptrclass(ptrclass) {}
+    : PtrGCType(GCPtrTypeID, Inner, mutability), ptrclass(ptrclass) {}
 public:
-  virtual void accept(GCTypeVisitor* v);
-  template <typename T> virtual void accept(GCTypeContextVisitor<T>*, T&);
-
-  static const GCPtrGCType* get(LLVMContext &C,
-				const llvm::MDNode* md,
-				unsigned mutability = MutableID,
-				unsigned mobility = MobileID,
-				unsigned ptrclass = StrongPtrID);
-
+  enum {
+    MobileID,
+    ImmobileID
+  };
   enum {
     StrongPtrID,
     SoftPtrID,
@@ -202,6 +234,17 @@ public:
     PhantomPtrID,
     FinalPtrID
   };
+
+  virtual void accept(GCTypeVisitor& v) const;
+
+  template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
+					  T& ctx) const {
+    v.visit(this, ctx);
+  }
+
+  static const GCPtrGCType* get(const llvm::Module* M,
+				const llvm::MDNode* md,
+				unsigned mutability = MutableID);
 };
 
 
@@ -220,16 +263,27 @@ private:
 	       unsigned nfields,
 	       bool packed = false,
 	       unsigned mutability = MutableID)
-    : GCType(mutability), nfields(nfields), fieldtys(fieldtys),
-      fieldflags(fieldflags), packed(packed) {}
+    : GCType(StructTypeID, mutability), nfields(nfields),
+      fieldtys(fieldtys), packed(packed) {}
 public:
-  virtual void accept(GCTypeVisitor* v);
-  template <typename T> virtual void accept(GCTypeContextVisitor<T>*, T&);
+  virtual void accept(GCTypeVisitor& v) const;
 
   inline bool isPacked() const { return packed; }
   inline unsigned numFields() const { return nfields; }
 
-  static const StructGCType* get(LLVMContext &C,
+  template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
+					  T& parent) const {
+    T ctx;
+    const bool descend = v.begin(this, ctx, parent);
+
+    if(descend)
+      for(unsigned i = 0; i < nfields; i++)
+	fieldtys[i]->accept<T>(v, ctx);
+
+    v.end(this, ctx, parent);
+  }
+
+  static const StructGCType* get(const llvm::Module* M,
 				 const llvm::MDNode* md,
 				 unsigned mutability = MutableID);
 };
@@ -251,19 +305,57 @@ private:
 		unsigned nparams,
 		bool vararg = false,
 		unsigned mutability = MutableID)
-    : GCType(mutability), nfields(nfields), fieldtys(fieldtys),
-      fieldflags(fieldflags), packed(packed) {}
+    : GCType(FuncPtrTypeID, mutability), nparams(nparams),
+      paramtys(paramtys), resty(resty), vararg(vararg) {}
 public:
-  virtual void accept(GCTypeVisitor*);
-  template <typename T> virtual void accept(GCTypeContextVisitor<T>*, T&);
+  virtual void accept(GCTypeVisitor&) const;
 
   inline bool isVararg() const { return vararg; }
   inline unsigned numParams() const { return nparams; }
   inline const GCType* resultTy() const { return resty; }
 
-  static const FuncPtrGCType* get(LLVMContext &C,
+  template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
+					  T& parent) const {
+    T ctx;
+    const bool descend = v.begin(this, ctx, parent);
+
+    if(descend) {
+      resty->accept<T>(v, ctx);
+
+      for(unsigned i = 0; i < nparams; i++)
+	paramtys[i]->accept<T>(v, ctx);
+    }
+
+    v.end(this, ctx, parent);
+  }
+
+  static const FuncPtrGCType* get(const llvm::Module* M,
 				  const llvm::MDNode* md,
 				  unsigned mutability = MutableID);
 };
+
+template <typename T> void GCType::accept(GCTypeContextVisitor<T>& v,
+					  T& ctx) const {
+  switch(getTypeID()) {
+  case PrimTypeID:
+    static_cast<const PrimGCType*>(this)->accept(v, ctx);
+    break;
+  case StructTypeID:
+    static_cast<const StructGCType*>(this)->accept(v, ctx);
+    break;
+  case ArrayTypeID:
+    static_cast<const ArrayGCType*>(this)->accept(v, ctx);
+    break;
+  case FuncPtrTypeID:
+    static_cast<const FuncPtrGCType*>(this)->accept(v, ctx);
+    break;
+  case NativePtrTypeID:
+    static_cast<const NativePtrGCType*>(this)->accept(v, ctx);
+    break;
+  case GCPtrTypeID:
+    static_cast<const GCPtrGCType*>(this)->accept(v, ctx);
+    break;
+  }
+}
 
 #endif
