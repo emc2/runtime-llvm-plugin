@@ -90,7 +90,7 @@ public:
 
   virtual void accept(GCTypeVisitor& v) const = 0;
 
-  static const GCType* get(const llvm::Module* M,
+  static const GCType* get(const llvm::Module& M,
 			   const llvm::MDNode* md,
 			   unsigned mutability = MutableID);
 
@@ -116,13 +116,13 @@ public:
   virtual void accept(GCTypeVisitor& v) const;
 
   static const PrimGCType* getUnit();
-  static const PrimGCType* getInt(const llvm::Module* M,
+  static const PrimGCType* getInt(const llvm::Module& M,
 				  const llvm::MDNode* md,
 				  unsigned mutability);
-  static const PrimGCType* getFloat(const llvm::Module* M,
+  static const PrimGCType* getFloat(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
-  static const PrimGCType* getNamed(const llvm::Module* M,
+  static const PrimGCType* getNamed(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
 
@@ -165,7 +165,7 @@ public:
     v.end(this, ctx, parent);
   }
 
-  static const ArrayGCType* get(const llvm::Module* M,
+  static const ArrayGCType* get(const llvm::Module& M,
 				const llvm::MDNode* md,
 				unsigned mutability);
 };
@@ -203,7 +203,7 @@ public:
     v.visit(this, ctx);
   }
 
-  static const NativePtrGCType* get(const llvm::Module* M,
+  static const NativePtrGCType* get(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
 };
@@ -227,6 +227,7 @@ public:
     MobileID,
     ImmobileID
   };
+
   enum {
     StrongPtrID,
     SoftPtrID,
@@ -242,7 +243,7 @@ public:
     v.visit(this, ctx);
   }
 
-  static const GCPtrGCType* get(const llvm::Module* M,
+  static const GCPtrGCType* get(const llvm::Module& M,
 				const llvm::MDNode* md,
 				unsigned mutability = MutableID);
 };
@@ -283,7 +284,7 @@ public:
     v.end(this, ctx, parent);
   }
 
-  static const StructGCType* get(const llvm::Module* M,
+  static const StructGCType* get(const llvm::Module& M,
 				 const llvm::MDNode* md,
 				 unsigned mutability = MutableID);
 };
@@ -329,7 +330,7 @@ public:
     v.end(this, ctx, parent);
   }
 
-  static const FuncPtrGCType* get(const llvm::Module* M,
+  static const FuncPtrGCType* get(const llvm::Module& M,
 				  const llvm::MDNode* md,
 				  unsigned mutability = MutableID);
 };

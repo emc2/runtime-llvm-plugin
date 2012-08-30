@@ -34,12 +34,12 @@
 #include "llvm/Metadata.h"
 #include "llvm/Constants.h"
 
-static const llvm::Type* getType(const llvm::Module* M,
+static const llvm::Type* getType(const llvm::Module& M,
 				 const llvm::MDString* desc) {
-  return M->getTypeByName(desc->getString());
+  return M.getTypeByName(desc->getString());
 }
 
-const GCType* GCType::get(const llvm::Module* M,
+const GCType* GCType::get(const llvm::Module& M,
 			  const llvm::MDNode* md,
 			  unsigned mutability) {
   unsigned tag =
@@ -61,7 +61,7 @@ const GCType* GCType::get(const llvm::Module* M,
 }
 
 // Format: GC_MD_FUNC vararg retty paramty*
-const FuncPtrGCType* FuncPtrGCType::get(const llvm::Module* M,
+const FuncPtrGCType* FuncPtrGCType::get(const llvm::Module& M,
 					const llvm::MDNode* md,
 					unsigned mutability) {
   const unsigned vararg =
@@ -83,7 +83,7 @@ const FuncPtrGCType* FuncPtrGCType::get(const llvm::Module* M,
 }
 
 // Format: GC_MD_STRUCT packed { mutability, field }+
-const StructGCType* StructGCType::get(const llvm::Module* M,
+const StructGCType* StructGCType::get(const llvm::Module& M,
 				      const llvm::MDNode* md,
 				      unsigned mutability) {
   const unsigned packed =
@@ -106,7 +106,7 @@ const StructGCType* StructGCType::get(const llvm::Module* M,
 }
 
 // Format: GC_MD_ARRAY inner [size]
-const ArrayGCType* ArrayGCType::get(const llvm::Module* M,
+const ArrayGCType* ArrayGCType::get(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability) {
   const llvm::MDNode* inner =
@@ -124,7 +124,7 @@ const ArrayGCType* ArrayGCType::get(const llvm::Module* M,
 }
 
 // Format: GC_MD_NATIVEPTR inner
-const NativePtrGCType* NativePtrGCType::get(const llvm::Module* M,
+const NativePtrGCType* NativePtrGCType::get(const llvm::Module& M,
 					    const llvm::MDNode* md,
 					    unsigned mutability) {
   const llvm::MDString* inner =
@@ -135,7 +135,7 @@ const NativePtrGCType* NativePtrGCType::get(const llvm::Module* M,
 }
 
 // Format: GC_MD_GCPTR mobility ptrclass inner
-const GCPtrGCType* GCPtrGCType::get(const llvm::Module* M,
+const GCPtrGCType* GCPtrGCType::get(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability) {
   const unsigned mobility =
@@ -163,6 +163,14 @@ const PrimGCType* PrimGCType::getUnit() {
     unitGCTy = new PrimGCType(NULL, ImmutableID);;
 
   return unitGCTy;
+}
+
+// Format: GC_MD_INT size
+static const PrimGCType* getInt(const llvm::Module& M,
+				const llvm::MDNode* const md,
+				const unsigned mutability) {
+  const unsigned size =
+    llvm::cast<llvm::ConstantInt>(md->getOperand(1))->getZExtValue();
 }
 
 // Visitor functions

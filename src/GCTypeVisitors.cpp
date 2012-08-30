@@ -26,58 +26,20 @@
  * SUCH DAMAGE.
  */
 
+#define __STDC_LIMIT_MACROS 1
+#define __STDC_CONSTANT_MACROS 1
 #include "GCTypeVisitors.h"
 
 bool GCTypeVisitor::begin(const GCType*) { return true; }
 bool GCTypeVisitor::begin(const StructGCType*) { return true; }
 bool GCTypeVisitor::begin(const FuncPtrGCType*) { return true; }
 bool GCTypeVisitor::begin(const ArrayGCType*) { return true; }
-bool GCTypeVisitor::begin(const NativePtrGCType*) { return true; }
 void GCTypeVisitor::end(const GCType*) {}
 void GCTypeVisitor::end(const StructGCType*) {}
 void GCTypeVisitor::end(const FuncPtrGCType*) {}
 void GCTypeVisitor::end(const ArrayGCType*) {}
-void GCTypeVisitor::end(const NativePtrGCType*) {}
 void GCTypeVisitor::visit(const GCType*) {}
 void GCTypeVisitor::visit(const GCPtrGCType*) {}
-void GCTypeVisitor::visit(const AtomicGCType*) {}
+void GCTypeVisitor::visit(const PrimGCType*) {}
+void GCTypeVisitor::visit(const NativePtrGCType*) {}
 
-template <typename T>
-bool GCTypeContextVisitor<T>::begin(const GCType*, T&, T&) { return true; }
-
-template <typename T>
-bool GCTypeContextVisitor<T>::begin(const StructGCType*, T&, T&) {
-  return true;
-}
-
-template <typename T>
-bool GCTypeContextVisitor<T>::begin(const FuncPtrGCType*, T&, T&) {
-  return true;
-}
-
-template <typename T>
-bool GCTypeContextVisitor<T>::begin(const ArrayGCType*, T&, T&) {
-  return true;
-}
-
-template <typename T>
-bool GCTypeContextVisitor<T>::begin(const NativePtrGCType*, T&, T&) {
-  return true;
-}
-
-template <typename T>
-void GCTypeContextVisitor<T>::end(const GCType*, T&, T&) {}
-template <typename T>
-void GCTypeContextVisitor<T>::end(const StructGCType*, T&, T&) {}
-template <typename T>
-void GCTypeContextVisitor<T>::end(const FuncPtrGCType*, T&, T&) {}
-template <typename T>
-void GCTypeContextVisitor<T>::end(const ArrayGCType*, T&, T&) {}
-template <typename T>
-void GCTypeContextVisitor<T>::end(const NativePtrGCType*, T&, T&) {}
-template <typename T>
-void GCTypeContextVisitor<T>::visit(const GCType*, T&) {}
-template <typename T>
-void GCTypeContextVisitor<T>::visit(const GCPtrGCType*, T&) {}
-template <typename T>
-void GCTypeContextVisitor<T>::visit(const AtomicGCType*, T&) {}
