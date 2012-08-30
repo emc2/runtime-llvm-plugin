@@ -165,12 +165,34 @@ const PrimGCType* PrimGCType::getUnit() {
   return unitGCTy;
 }
 
+// XXX Probably unique these types like LLVM does
+
 // Format: GC_MD_INT size
-static const PrimGCType* getInt(const llvm::Module& M,
-				const llvm::MDNode* const md,
-				const unsigned mutability) {
+const PrimGCType* PrimGCType::getInt(const llvm::Module& M,
+				     const llvm::MDNode* const md,
+				     const unsigned mutability) {
   const unsigned size =
     llvm::cast<llvm::ConstantInt>(md->getOperand(1))->getZExtValue();
+  const llvm::Type* const ty = llvm::Type::getIntNTy(M.getContext(), size);
+
+  return new PrimGCType(ty, mutability);
+}
+
+// Format: GC_MD_FLOAT size
+const PrimGCType* PrimGCType::getFloat(const llvm::Module& M,
+				       const llvm::MDNode* const md,
+				       const unsigned mutability) {
+  llvm::LLVMContext& C = M.getContext();
+  const unsigned size =
+    llvm::cast<llvm::ConstantInt>(md->getOperand(1))->getZExtValue();
+
+  switch(size) {
+  case 16: return new PrimGCType(llvm::Type::getHalfTy(C), mutability);
+  case 32: return new PrimGCType(llvm::Type::getFloatTy(C), mutability);
+  case 64: return new PrimGCType(llvm::Type::getDoubleTy(C), mutability);
+  case 128: return new PrimGCType(llvm::Type::getFP128Ty(C), mutability);
+  }
+
 }
 
 // Visitor functions
