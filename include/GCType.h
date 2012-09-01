@@ -88,12 +88,34 @@ public:
    */
   inline unsigned mutability() const { return (flags & ~0x1); }
 
+  /*!
+   * This function runs a visitor on this type.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   */
   virtual void accept(GCTypeVisitor& v) const = 0;
 
+  /*!
+   * This function builds a type from metadata.
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const GCType* get(const llvm::Module& M,
 			   const llvm::MDNode* md,
 			   unsigned mutability = MutableID);
 
+  /*!
+   * This function runs a visitor on this type. The ctx argument will
+   * be passed in as the parent argument in the visitor functions.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   * \param ctx The context argument to pass in.
+   */
   template <typename T> void accept(GCTypeContextVisitor<T>& v,
 				    T& ctx) const;
 };
@@ -113,19 +135,73 @@ private:
 
   static const PrimGCType* unitGCTy;
 public:
+
+  /*!
+   * This function runs a visitor on this type.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   */
   virtual void accept(GCTypeVisitor& v) const;
 
+  /*!
+   * This function returns the type representing the unit type.  This
+   * is uniqued.
+   *
+   * \brief Get the type representing unit.
+   */
   static const PrimGCType* getUnit();
+
+  /*!
+   * This function builds a type from metadata.  It assumes the
+   * metadata's type tag is GC_MD_INT, and the metadata node is
+   * properly formatted
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const PrimGCType* getInt(const llvm::Module& M,
 				  const llvm::MDNode* md,
 				  unsigned mutability);
+
+  /*!
+   * This function builds a type from metadata.  It assumes the
+   * metadata's type tag is GC_MD_FLOAT, and the metadata node is
+   * properly formatted
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const PrimGCType* getFloat(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
+
+  /*!
+   * This function builds a type from metadata.  It assumes the
+   * metadata's type tag is GC_MD_NAMED, and the metadata node is
+   * properly formatted
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const PrimGCType* getNamed(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
 
+  /*!
+   * This function runs a visitor on this type. The ctx argument will
+   * be passed in as the parent argument in the visitor functions.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   * \param ctx The context argument to pass in.
+   */
   template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
 					  T& ctx) const {
     v.visit(this, ctx);
@@ -148,12 +224,27 @@ private:
 	      unsigned mutability = MutableID)
     : GCType(ArrayTypeID, mutability), Elem(Elem), nelems(nelems) {}
 public:
+  /*!
+   * This function runs a visitor on this type.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   */
   virtual void accept(GCTypeVisitor& v) const;
 
   inline const GCType* getElemTy() const { return Elem; }
   inline bool isSized() const { return nelems != 0; }
   inline unsigned getNumElems() const { return nelems; }
 
+  /*!
+   * This function runs a visitor on this type. The parent argument
+   * will be passed in as the parent argument in the visitor
+   * functions.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   * \param parent The context argument to pass in.
+   */
   template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
 					  T& parent) const {
     T ctx;
@@ -165,6 +256,16 @@ public:
     v.end(this, ctx, parent);
   }
 
+  /*!
+   * This function builds a type from metadata.  It assumes the
+   * metadata's type tag is GC_MD_ARRAY, and the metadata node is
+   * properly formatted
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const ArrayGCType* get(const llvm::Module& M,
 				const llvm::MDNode* md,
 				unsigned mutability);
@@ -196,13 +297,38 @@ private:
     : PtrGCType(NativePtrTypeID, Inner, mutability) {}
 
 public:
+
+  /*!
+   * This function runs a visitor on this type.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   */
   virtual void accept(GCTypeVisitor& v) const;
 
+  /*!
+   * This function runs a visitor on this type. The ctx argument will
+   * be passed in as the parent argument in the visitor functions.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   * \param ctx The context argument to pass in.
+   */
   template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
 					  T& ctx) const {
     v.visit(this, ctx);
   }
 
+  /*!
+   * This function builds a type from metadata.  It assumes the
+   * metadata's type tag is GC_MD_NATIVE_PTR, and the metadata node is
+   * properly formatted
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const NativePtrGCType* get(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
@@ -236,13 +362,37 @@ public:
     FinalPtrID
   };
 
+  /*!
+   * This function runs a visitor on this type.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   */
   virtual void accept(GCTypeVisitor& v) const;
 
+  /*!
+   * This function runs a visitor on this type. The ctx argument will
+   * be passed in as the parent argument in the visitor functions.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   * \param ctx The context argument to pass in.
+   */
   template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
 					  T& ctx) const {
     v.visit(this, ctx);
   }
 
+  /*!
+   * This function builds a type from metadata.  It assumes the
+   * metadata's type tag is GC_MD_GC_PTR, and the metadata node is
+   * properly formatted
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const GCPtrGCType* get(const llvm::Module& M,
 				const llvm::MDNode* md,
 				unsigned mutability = MutableID);
@@ -267,11 +417,26 @@ private:
     : GCType(StructTypeID, mutability), nfields(nfields),
       fieldtys(fieldtys), packed(packed) {}
 public:
+
+  /*!
+   * This function runs a visitor on this type.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   */
   virtual void accept(GCTypeVisitor& v) const;
 
   inline bool isPacked() const { return packed; }
   inline unsigned numFields() const { return nfields; }
 
+  /*!
+   * This function runs a visitor on this type. The parent argument will
+   * be passed in as the parent argument in the visitor functions.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   * \param parent The context argument to pass in.
+   */
   template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
 					  T& parent) const {
     T ctx;
@@ -284,6 +449,16 @@ public:
     v.end(this, ctx, parent);
   }
 
+  /*!
+   * This function builds a type from metadata.  It assumes the
+   * metadata's type tag is GC_MD_STRUCT, and the metadata node is
+   * properly formatted
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const StructGCType* get(const llvm::Module& M,
 				 const llvm::MDNode* md,
 				 unsigned mutability = MutableID);
@@ -309,12 +484,27 @@ private:
     : GCType(FuncPtrTypeID, mutability), nparams(nparams),
       paramtys(paramtys), resty(resty), vararg(vararg) {}
 public:
+
+  /*!
+   * This function runs a visitor on this type.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   */
   virtual void accept(GCTypeVisitor&) const;
 
   inline bool isVararg() const { return vararg; }
   inline unsigned numParams() const { return nparams; }
   inline const GCType* resultTy() const { return resty; }
 
+  /*!
+   * This function runs a visitor on this type. The parent argument will
+   * be passed in as the parent argument in the visitor functions.
+   *
+   * \brief Run a visitor on this type.
+   * \param v The visitor to run.
+   * \param parent The context argument to pass in.
+   */
   template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
 					  T& parent) const {
     T ctx;
@@ -323,13 +513,30 @@ public:
     if(descend) {
       resty->accept<T>(v, ctx);
 
-      for(unsigned i = 0; i < nparams; i++)
-	paramtys[i]->accept<T>(v, ctx);
+      const bool params = v.beginParams(this, ctx);
+
+      if(params) {
+	for(unsigned i = 0; i < nparams; i++)
+	  paramtys[i]->accept<T>(v, ctx);
+
+	v.endParams(this, ctx);
+      }
+
+      v.end(this, ctx, parent);
     }
 
-    v.end(this, ctx, parent);
   }
 
+  /*!
+   * This function builds a type from metadata.  It assumes the
+   * metadata's type tag is GC_MD_FUNC, and the metadata node is
+   * properly formatted
+   *
+   * \brief Construct a type from metadata.
+   * \param M The module in which to build the type.
+   * \param md The metadata from which to build the type.
+   * \param mutability The mutability of the type.
+   */
   static const FuncPtrGCType* get(const llvm::Module& M,
 				  const llvm::MDNode* md,
 				  unsigned mutability = MutableID);
