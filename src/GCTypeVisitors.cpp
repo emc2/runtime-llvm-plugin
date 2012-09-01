@@ -30,16 +30,14 @@
 #define __STDC_CONSTANT_MACROS 1
 #include "GCTypeVisitors.h"
 
-bool GCTypeVisitor::begin(const GCType*) { return true; }
 bool GCTypeVisitor::begin(const StructGCType*) { return true; }
 bool GCTypeVisitor::begin(const FuncPtrGCType*) { return true; }
 bool GCTypeVisitor::begin(const ArrayGCType*) { return true; }
-void GCTypeVisitor::end(const GCType*) {}
 void GCTypeVisitor::end(const StructGCType*) {}
 void GCTypeVisitor::end(const FuncPtrGCType*) {}
 void GCTypeVisitor::end(const ArrayGCType*) {}
-void GCTypeVisitor::visit(const GCType*) {}
 void GCTypeVisitor::visit(const GCPtrGCType*) {}
 void GCTypeVisitor::visit(const PrimGCType*) {}
 void GCTypeVisitor::visit(const NativePtrGCType*) {}
-
+bool GCTypeVisitor::beginParams(const FuncPtrGCType*) { return true; }
+void GCTypeVisitor::endParams(const FuncPtrGCType*) {}

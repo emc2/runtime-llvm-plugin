@@ -28,6 +28,8 @@
 #ifndef _GC_TYPE_VISITOR_H_
 #define _GC_TYPE_VISITOR_H_
 
+#include <llvm/Support/raw_ostream.h>
+
 class GCType;
 class PrimGCType;
 class ArrayGCType;
@@ -343,9 +345,9 @@ public:
 
 class GCTypePrintVisitor {
 private:
-  raw_ostream& stream;
+  llvm::raw_ostream& stream;
 public:
-  GCTypePrintVisitor(raw_ostream& stream) : stream(stream) {}
+  GCTypePrintVisitor(llvm::raw_ostream& stream) : stream(stream) {}
 
   virtual bool begin(const StructGCType* ty);
   virtual bool begin(const FuncPtrGCType* ty);
