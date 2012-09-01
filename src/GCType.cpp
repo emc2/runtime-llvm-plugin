@@ -239,3 +239,14 @@ void GCPtrGCType::accept(GCTypeVisitor& v) const {
 void PrimGCType::accept(GCTypeVisitor& v) const {
   v.visit(this);
 }
+
+const char* const GCType::mutabilityStrs[] =
+  { "immutable", "mutable", "writeonce" };
+
+const PrimGCType* PrimGCType::unitGCTy = NULL;
+
+const char* const GCPtrGCType::mobilityStrs[] =
+  { "mobile", "immobile" };
+
+const char* const GCPtrGCType::ptrClassStrs[] =
+  { "strong", "soft", "weak", "phantom", "final" };

@@ -33,10 +33,14 @@
 #include "llvm/Module.h"
 #include "llvm/ADT/StringMap.h"
 #include "GCType.h"
+#include "GCTypeVisitors.h"
+#include <llvm/Support/raw_ostream.h>
 
 bool parseGCTypes(llvm::Module& M,
 		  llvm::StringMap<const GCType*>& map) {
   const llvm::NamedMDNode* const md = M.getNamedMetadata("core.gc.types");
+  GCTypePrintVisitor print(llvm::outs());
+  bool first = false;
 
   for(unsigned int i = 0; i < md->getNumOperands(); i++) {
     const llvm::MDNode* const node = md->getOperand(i);
@@ -44,8 +48,11 @@ bool parseGCTypes(llvm::Module& M,
       llvm::cast<llvm::MDString>(node->getOperand(0));
     const llvm::MDNode* const desc =
       llvm::cast<llvm::MDNode>(node->getOperand(1));
+    const GCType* const newty = GCType::get(M, desc);
 
-    map[tyname->getString()] = GCType::get(M, desc);
+    newty->accept(print, first);
+    llvm::outs() << "\n";
+    map[tyname->getString()] = newty;
   }
 
   return false;

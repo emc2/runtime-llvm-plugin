@@ -81,12 +81,24 @@ public:
     NumMutabilityIDs
   };
 
+  static const char* const mutabilityStrs[];
+
   /*!
    * This function returns the mutability of the entire type.
    *
    * \brief Get the mutability.
    */
   inline unsigned mutability() const { return (flags & ~0x1); }
+
+  /*!
+   * This function returns the string representation of the mutability
+   * of the entire type.
+   *
+   * \brief Get the mutability.
+   */
+  inline const char* mutabilityName() const {
+    return mutabilityStrs[mutability()];
+  }
 
   /*!
    * This function runs a visitor on this type.
@@ -135,6 +147,8 @@ private:
 
   static const PrimGCType* unitGCTy;
 public:
+
+  inline const llvm::Type* getLLVMType() const { return TypeRef; }
 
   /*!
    * This function runs a visitor on this type.
@@ -342,17 +356,21 @@ public:
 class GCPtrGCType : public PtrGCType {
 private:
   const unsigned ptrclass;
+  const unsigned mobility;
 
   GCPtrGCType(const llvm::Type* Inner,
 	      unsigned mutability = MutableID,
 	      unsigned mobility = MobileID,
 	      unsigned ptrclass = StrongPtrID)
-    : PtrGCType(GCPtrTypeID, Inner, mutability), ptrclass(ptrclass) {}
+    : PtrGCType(GCPtrTypeID, Inner, mutability),
+      ptrclass(ptrclass), mobility(mobility) {}
 public:
   enum {
     MobileID,
     ImmobileID
   };
+
+  static const char* const mobilityStrs[];
 
   enum {
     StrongPtrID,
@@ -361,6 +379,20 @@ public:
     PhantomPtrID,
     FinalPtrID
   };
+
+  static const char* const ptrClassStrs[];
+
+  inline unsigned getPtrClass() const { return ptrclass; }
+
+  inline const char* getPtrClassName() const {
+    return ptrClassStrs[getPtrClass()];
+  }
+
+  inline unsigned getMobility() const { return mobility; }
+
+  inline const char* getMobilityName() const {
+    return mobilityStrs[getMobility()];
+  }
 
   /*!
    * This function runs a visitor on this type.

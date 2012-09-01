@@ -343,23 +343,27 @@ public:
 
 // Some stock visitors, like a print visitor
 
-class GCTypePrintVisitor {
+class GCTypePrintVisitor : public GCTypeContextVisitor<bool> {
 private:
   llvm::raw_ostream& stream;
 public:
-  GCTypePrintVisitor(llvm::raw_ostream& stream) : stream(stream) {}
+  GCTypePrintVisitor(llvm::raw_ostream& stream) :
+    stream(stream), GCTypeContextVisitor<bool>() {}
 
-  virtual bool begin(const StructGCType* ty);
-  virtual bool begin(const FuncPtrGCType* ty);
-  virtual bool begin(const ArrayGCType* ty);
+  virtual bool begin(const StructGCType* ty, bool&, bool&);
+  virtual bool begin(const FuncPtrGCType* ty, bool&, bool&);
+  virtual bool begin(const ArrayGCType* ty, bool&, bool&);
 
-  virtual void end(const StructGCType* ty);
-  virtual void end(const FuncPtrGCType* ty);
-  virtual void end(const ArrayGCType* ty);
+  virtual void end(const StructGCType* ty, bool&, bool&);
+  virtual void end(const FuncPtrGCType* ty, bool&, bool&);
+  virtual void end(const ArrayGCType* ty, bool&, bool&);
 
-  virtual void visit(const NativePtrGCType* ty);
-  virtual void visit(const GCPtrGCType* ty);
-  virtual void visit(const PrimGCType* ty);
+  virtual void visit(const NativePtrGCType* ty, bool&);
+  virtual void visit(const GCPtrGCType* ty, bool&);
+  virtual void visit(const PrimGCType* ty, bool&);
+
+  virtual bool beginParams(const FuncPtrGCType* ty, bool&);
+  virtual void endParams(const FuncPtrGCType* ty, bool&);
 };
 
 #endif
