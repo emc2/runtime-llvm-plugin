@@ -1,13 +1,15 @@
-INCLUDEFLAGS=-I/usr/local/include -I./include
-#SRCS=GCType.cpp GCTypeVisitors.cpp 
-OBJS=src/GCType.o src/GCTypeVisitors.o src/ParseMetadataPass.o
-CXXFLAGS+=${INCLUDEFLAGS} -fno-rtti -fno-exceptions
-CXX=clang++
+OBJDIR=$(.CURDIR)/obj/
+SRCDIR=$(.CURDIR)/src/
+MAKEOBJDIR=${OBJDIR}
 
-.cpp.o:
-	${CXX} ${CXXFLAGS} -c ${.IMPSRC}
+all: #${OBJS} .PHONY
 
-all: ${OBJS};
+clean: .PHONY
+	rm -rf $(OBJDIR)
+	make clean -C $(SRCDIR)
 
-clean:;
-	rm -rf ${OBJS}
+obj: .PHONY
+	if [ ! -d $(OBJDIR) ]; then mkdir $(.CURDIR)/obj/; fi
+
+objs: obj .PHONY
+	make -C $(SRCDIR)
