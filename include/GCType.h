@@ -141,16 +141,16 @@ public:
  */
 class PrimGCType : public GCType {
 private:
-  const llvm::Type *const TypeRef;
+  llvm::Type *const TypeRef;
 
-  PrimGCType(const llvm::Type* TypeRef,
+  PrimGCType(llvm::Type* TypeRef,
 	     unsigned mutability = MutableID)
     : TypeRef(TypeRef), GCType(PrimTypeID, mutability) {}
 
   static const PrimGCType* unitGCTy;
 public:
 
-  inline const llvm::Type* getLLVMType() const { return TypeRef; }
+  inline llvm::Type* getLLVMType() const { return TypeRef; }
 
   /*!
    * This function runs a visitor on this type.
@@ -289,15 +289,15 @@ public:
 
 class PtrGCType : public GCType {
 protected:
-  const llvm::Type* const Inner;
+  llvm::Type* const Inner;
 
   PtrGCType(unsigned typeID,
-	    const llvm::Type* Inner,
+	    llvm::Type* Inner,
 	    unsigned mutability = MutableID)
     : GCType(typeID, mutability), Inner(Inner) {}
 
 public:
-  inline const llvm::Type* getElemTy() const { return Inner; }
+  inline llvm::Type* getElemTy() const { return Inner; }
 };
 
 /*!
@@ -308,7 +308,7 @@ public:
  */
 class NativePtrGCType : public PtrGCType {
 private:
-  NativePtrGCType(const llvm::Type* Inner,
+  NativePtrGCType(llvm::Type* Inner,
 		  unsigned mutability = MutableID)
     : PtrGCType(NativePtrTypeID, Inner, mutability) {}
 
@@ -360,7 +360,7 @@ private:
   const unsigned ptrclass;
   const unsigned mobility;
 
-  GCPtrGCType(const llvm::Type* Inner,
+  GCPtrGCType(llvm::Type* Inner,
 	      unsigned mutability = MutableID,
 	      unsigned mobility = MobileID,
 	      unsigned ptrclass = StrongPtrID)

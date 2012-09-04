@@ -34,10 +34,10 @@
 #include "llvm/Metadata.h"
 #include "llvm/Constants.h"
 
-static const llvm::Type* getType(const llvm::Module& M,
-				 const llvm::MDString* desc) {
+static llvm::Type* getType(const llvm::Module& M,
+			   const llvm::MDString* desc) {
   const llvm::StringRef name = desc->getString();
-  const llvm::Type* const innerty = M.getTypeByName(name);
+  llvm::Type* const innerty = M.getTypeByName(name);
 
   if(NULL == innerty)
     return llvm::StructType::create(M.getContext(), name);
@@ -135,7 +135,7 @@ const NativePtrGCType* NativePtrGCType::get(const llvm::Module& M,
 					    unsigned mutability) {
   const llvm::MDString* inner =
     llvm::cast<llvm::MDString>(md->getOperand(1));
-  const llvm::Type* innerty = getType(M, inner);
+  llvm::Type* innerty = getType(M, inner);
 
   return new NativePtrGCType(innerty, mutability);
 }
@@ -150,7 +150,7 @@ const GCPtrGCType* GCPtrGCType::get(const llvm::Module& M,
     llvm::cast<llvm::ConstantInt>(md->getOperand(2))->getZExtValue();
   const llvm::MDString* inner =
     llvm::cast<llvm::MDString>(md->getOperand(3));  
-  const llvm::Type* innerty = getType(M, inner);
+  llvm::Type* innerty = getType(M, inner);
 
   return new GCPtrGCType(innerty, mutability, mobility, ptrclass);
 }
@@ -178,7 +178,7 @@ const PrimGCType* PrimGCType::getNamed(const llvm::Module& M,
 				       const unsigned mutability) {
   const llvm::MDString* const name =
     llvm::cast<llvm::MDString>(md->getOperand(1));
-  const llvm::Type* const ty = getType(M, name);
+  llvm::Type* const ty = getType(M, name);
 
     return new PrimGCType(ty, mutability);
 }
@@ -189,7 +189,7 @@ const PrimGCType* PrimGCType::getInt(const llvm::Module& M,
 				     const unsigned mutability) {
   const unsigned size =
     llvm::cast<llvm::ConstantInt>(md->getOperand(1))->getZExtValue();
-  const llvm::Type* const ty = llvm::Type::getIntNTy(M.getContext(), size);
+  llvm::Type* const ty = llvm::Type::getIntNTy(M.getContext(), size);
 
   return new PrimGCType(ty, mutability);
 }

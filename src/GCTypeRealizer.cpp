@@ -26,10 +26,14 @@
  * SUCH DAMAGE.
  */
 
+#define __STDC_LIMIT_MACROS 1
+#define __STDC_CONSTANT_MACROS 1
 #include <string.h>
+#include "TypeBuilder.h"
 #include "GCTypeRealizer.h"
 #include "llvm/DerivedTypes.h"
 
+GCTypeRealizer::GCTypeRealizer(llvm::Module& M) : M(M) {}
 
 bool GCTypeRealizer::begin(const StructGCType* const gcty,
 			   TypeBuilder*& ctx,
@@ -39,29 +43,65 @@ bool GCTypeRealizer::begin(const StructGCType* const gcty,
   return true;
 }
 
-void GCTypeRealizer::end(const StructGCType* const gcty,
-	 TypeBuilder*& ctx,
-	 TypeBuilder*& parent) {
-  parent->add(ctx->build());
+bool GCTypeRealizer::begin(const FuncPtrGCType* const gcty,
+			   TypeBuilder*& ctx,
+			   TypeBuilder*&) {
+  ctx = new FuncPtrTypeBuilder(gcty);
+
+  return true;
+}
+
+bool GCTypeRealizer::begin(const ArrayGCType* const gcty,
+			   TypeBuilder*& ctx,
+			   TypeBuilder*&) {
+  ctx = new ArrayTypeBuilder(gcty);
+
+  return true;
+}
+
+void GCTypeRealizer::end(const StructGCType*,
+			 TypeBuilder*& ctx,
+			 TypeBuilder*& parent) {
+  parent->add(ctx->build(M));
   delete ctx;
   ctx = NULL;
 }
 
+void GCTypeRealizer::end(const FuncPtrGCType*,
+			 TypeBuilder*& ctx,
+			 TypeBuilder*& parent) {
+  parent->add(ctx->build(M));
+  delete ctx;
+  ctx = NULL;
+}
+
+void GCTypeRealizer::end(const ArrayGCType*,
+			 TypeBuilder*& ctx,
+			 TypeBuilder*& parent) {
+  parent->add(ctx->build(M));
+  delete ctx;
+  ctx = NULL;
+}
 
 // Native pointers are essentially opaque values to us
 void GCTypeRealizer::visit(const NativePtrGCType* const gcty,
 			   TypeBuilder*& ctx) {
-  const llvm::Type* const llvmty =
-    llvm::PointerType::getUnqual(gcty->getElemTy())
+  llvm::Type* const llvmty =
+    llvm::PointerType::getUnqual(gcty->getElemTy());
   ctx->add(llvmty);
 }
 
-void GCTypeRealizer::visit(const GCPtrGCType*, TypeBuilder*&) {
-  // Maybe build double-pointers here
+void GCTypeRealizer::visit(const GCPtrGCType* const gcty,
+			   TypeBuilder*& ctx) {
+  // XXX parameterize the generator by the GC type we want to generate
+  llvm::Type* const ptrty = llvm::PointerType::getUnqual(gcty->getElemTy());
+  llvm::Type* const llvmty = llvm::ArrayType::get(ptrty, 2);
+
+  ctx->add(llvmty);
 }
 
 // Primitive types are likewise opaque values
 void GCTypeRealizer::visit(const PrimGCType* const gcty,
 			   TypeBuilder*& ctx) {
-  ctx->add(gcty->getLLVMTy());
+  ctx->add(gcty->getLLVMType());
 }

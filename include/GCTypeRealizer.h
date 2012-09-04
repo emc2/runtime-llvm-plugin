@@ -30,6 +30,7 @@
 
 #include "GCTypeVisitors.h"
 #include "TypeBuilder.h"
+#include "llvm/Module.h"
 
 /*!
  * This is a subclass of GCTypeContextVisitor which works in
@@ -39,7 +40,10 @@
  * \brief A visitor which creates realizations of GC types.
  */
 class GCTypeRealizer : public GCTypeContextVisitor<TypeBuilder*> {
+private:
+  llvm::Module& M;
 public:
+  GCTypeRealizer(llvm::Module& M);
 
   virtual bool begin(const StructGCType*, TypeBuilder*&, TypeBuilder*&);
   virtual bool begin(const FuncPtrGCType*, TypeBuilder*&, TypeBuilder*&);
