@@ -46,20 +46,20 @@ private:
   unsigned flags;
 
   inline void setTypeID(unsigned typeID) {
-    flags = (flags & ~0xe) | ((typeID & 0x7) << 1);
+    flags = (flags & ~0x1c) | ((typeID & 0x7) << 2);
   }
 
   inline void setMutability(unsigned mutability) {
-    flags = (flags & ~0x1) | mutability;
+    flags = (flags & ~0x3) | (mutability & 0x3);
   }
 
   inline unsigned getTypeID() const {
-    return (flags >> 1) & 0x7;
+    return (flags >> 2) & 0x7;
   }
 
 protected:
   GCType(unsigned typeID,
-	 unsigned mutability = MutableID) {
+	 unsigned mutability = MutableID) : flags(0) {
     setTypeID(typeID);
     setMutability(mutability);
   }
@@ -88,7 +88,9 @@ public:
    *
    * \brief Get the mutability.
    */
-  inline unsigned mutability() const { return (flags & ~0x1); }
+  inline unsigned mutability() const {
+    return (flags & 0x3);
+  }
 
   /*!
    * This function returns the string representation of the mutability

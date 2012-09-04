@@ -328,7 +328,7 @@ public:
    * \param parent The context for the parent.
    * \return Whether or not to visit the parameters.
    */
-  virtual bool beginParams(const FuncPtrGCType* ty, T& parent);
+  virtual bool beginParams(const FuncPtrGCType* ty, T& parent) { return true; }
 
   /*!
    * This is called after visiting the parameters of a function
@@ -338,7 +338,7 @@ public:
    * \param ty The type being visited.
    * \param parent The context for the parent.
    */
-  virtual void endParams(const FuncPtrGCType* ty, T& parent);
+  virtual void endParams(const FuncPtrGCType* ty, T& parent) {}
 };
 
 // Some stock visitors, like a print visitor

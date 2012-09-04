@@ -43,7 +43,9 @@ bool GCTypePrintVisitor::begin(const StructGCType* const ty,
 }
 
 bool GCTypePrintVisitor::begin(const ArrayGCType* const ty,
-			       bool&, bool& first) {
+			       bool& ctx, bool& first) {
+  ctx = true;
+
   if(!first)
     stream << ", ";
 
@@ -62,28 +64,36 @@ bool GCTypePrintVisitor::begin(const FuncPtrGCType* const ty,
   return true;
 }
 
-void GCTypePrintVisitor::end(const StructGCType*, bool&, bool&) {
+void GCTypePrintVisitor::end(const StructGCType*, bool& first, bool&) {
+  first = false;
   stream << " }";
 }
 
-void GCTypePrintVisitor::end(const ArrayGCType* const ty, bool&, bool&) {
+void GCTypePrintVisitor::end(const ArrayGCType* const ty, bool& first, bool&) {
+  first = false;
   if(ty->isSized())
     stream << " x " << ty->getNumElems();
 
   stream << " ]";
 }
 
-void GCTypePrintVisitor::end(const FuncPtrGCType*, bool&, bool&) {}
+void GCTypePrintVisitor::end(const FuncPtrGCType*, bool& first, bool&) {
+  first = false;
+}
 
 void GCTypePrintVisitor::visit(const PrimGCType* const ty,
 			       bool& first) {
   if(!first)
     stream << ", ";
 
+  first = false;
+
   if(NULL == ty->getLLVMType())
     stream << "unit";
-  else
-    stream << ty->mutabilityName() << " " << ty->getLLVMType();
+  else {
+    stream << ty->mutabilityName() << " ";
+    ty->getLLVMType()->dump();
+  }
 }
 
 void GCTypePrintVisitor::visit(const NativePtrGCType* const ty,
@@ -91,7 +101,10 @@ void GCTypePrintVisitor::visit(const NativePtrGCType* const ty,
   if(!first)
     stream << ", ";
 
-  stream << ty->mutabilityName() << " " << ty->getElemTy() << "*";
+  first = false;
+  stream << ty->mutabilityName() << " ";
+  ty->getElemTy()->dump();
+  stream << "*";
 }
 
 void GCTypePrintVisitor::visit(const GCPtrGCType* const ty,
@@ -99,8 +112,11 @@ void GCTypePrintVisitor::visit(const GCPtrGCType* const ty,
   if(!first)
     stream << ", ";
 
-  stream  << ty->mutabilityName() << " " << ty->getElemTy() <<
-    " " << ty->getMobilityName() << " gc " << ty->getPtrClassName() << "*";
+  first = false;
+  stream  << ty->mutabilityName() << " ";
+  ty->getElemTy()->dump();
+  stream << " " << ty->getMobilityName() << " gc " <<
+    ty->getPtrClassName() << "*";
 }
 
 bool GCTypePrintVisitor::beginParams(const FuncPtrGCType*, bool&) {

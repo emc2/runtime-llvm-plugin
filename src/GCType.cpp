@@ -36,7 +36,13 @@
 
 static const llvm::Type* getType(const llvm::Module& M,
 				 const llvm::MDString* desc) {
-  return M.getTypeByName(desc->getString());
+  const llvm::StringRef name = desc->getString();
+  const llvm::Type* const innerty = M.getTypeByName(name);
+
+  if(NULL == innerty)
+    return llvm::StructType::create(M.getContext(), name);
+  else
+    return innerty;
 }
 
 const GCType* GCType::get(const llvm::Module& M,
@@ -95,9 +101,9 @@ const StructGCType* StructGCType::get(const llvm::Module& M,
     const llvm::MDNode* fielddesc =
       llvm::cast<llvm::MDNode>(md->getOperand(i));
     const unsigned mutability =
-      llvm::cast<llvm::ConstantInt>(md->getOperand(0))->getZExtValue();
+      llvm::cast<llvm::ConstantInt>(fielddesc->getOperand(0))->getZExtValue();
     const llvm::MDNode* typedesc =
-      llvm::cast<llvm::MDNode>(md->getOperand(1));
+      llvm::cast<llvm::MDNode>(fielddesc->getOperand(1));
 
     fieldtys[i - 2] = GCType::get(M, typedesc, mutability);
   }
@@ -166,6 +172,16 @@ const PrimGCType* PrimGCType::getUnit() {
 }
 
 // XXX Probably unique these types like LLVM does
+
+const PrimGCType* PrimGCType::getNamed(const llvm::Module& M,
+				       const llvm::MDNode* const md,
+				       const unsigned mutability) {
+  const llvm::MDString* const name =
+    llvm::cast<llvm::MDString>(md->getOperand(1));
+  const llvm::Type* const ty = getType(M, name);
+
+    return new PrimGCType(ty, mutability);
+}
 
 // Format: GC_MD_INT size
 const PrimGCType* PrimGCType::getInt(const llvm::Module& M,
