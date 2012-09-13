@@ -18,6 +18,7 @@
 
 #define __STDC_LIMIT_MACROS 1
 #define __STDC_CONSTANT_MACROS 1
+#include "GCType.h"
 #include "GCTypeVisitors.h"
 
 bool GCTypeVisitor::begin(const StructGCType*) { return true; }

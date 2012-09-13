@@ -119,3 +119,7 @@ bool GCTypePrintVisitor::beginParams(const FuncPtrGCType*, bool&) {
 void GCTypePrintVisitor::endParams(const FuncPtrGCType*, bool&) {
   stream << ")";
 }
+
+void GCTypePrintVisitor::print(const GCType* ty) {
+  ty->accept(*this);
+}
