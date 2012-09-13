@@ -43,10 +43,6 @@ private:
     flags = (flags & ~0x3) | (mutability & 0x3);
   }
 
-  inline unsigned getTypeID() const {
-    return (flags >> 2) & 0x7;
-  }
-
 protected:
   GCType(unsigned typeID,
 	 unsigned mutability = MutableID) : flags(0) {
@@ -82,6 +78,10 @@ public:
     return (flags & 0x3);
   }
 
+  inline unsigned getTypeID() const {
+    return (flags >> 2) & 0x7;
+  }
+
   /*!
    * This function returns the string representation of the mutability
    * of the entire type.
@@ -114,7 +114,8 @@ public:
 
   /*!
    * This function runs a visitor on this type. The ctx argument will
-   * be passed in as the parent argument in the visitor functions.
+   * be passed in as the parent argument in the visitor functions
+   * instead of the visitor's default argument.
    *
    * \brief Run a visitor on this type.
    * \param v The visitor to run.
@@ -122,6 +123,20 @@ public:
    */
   template <typename T> void accept(GCTypeContextVisitor<T>& v,
 				    T& ctx) const;
+
+  /*!
+   * This function runs a context visitor on this type, using the
+   * visitor's default initial context.
+   *
+   * \brief Run a context visitor on this type.
+   * \param v The visitor to run.
+   * \return The top-level context.
+   */
+  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
+    T init = v.initial(this);
+    accept(v, init);
+    return init;
+  }
 };
 
 /*!
@@ -212,6 +227,20 @@ public:
 					  T& ctx) const {
     v.visit(this, ctx);
   }
+
+  /*!
+   * This function runs a context visitor on this type, using the
+   * visitor's default initial context.
+   *
+   * \brief Run a context visitor on this type.
+   * \param v The visitor to run.
+   * \return The top-level context.
+   */
+  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
+    T init = v.initial(this);
+    accept(v, init);
+    return init;
+  }
 };
 
 /*!
@@ -260,6 +289,20 @@ public:
       Elem->accept<T>(v, ctx);
 
     v.end(this, ctx, parent);
+  }
+
+  /*!
+   * This function runs a context visitor on this type, using the
+   * visitor's default initial context.
+   *
+   * \brief Run a context visitor on this type.
+   * \param v The visitor to run.
+   * \return The top-level context.
+   */
+  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
+    T init = v.initial(this);
+    accept(v, init);
+    return init;
   }
 
   /*!
@@ -323,6 +366,20 @@ public:
   template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
 					  T& ctx) const {
     v.visit(this, ctx);
+  }
+
+  /*!
+   * This function runs a context visitor on this type, using the
+   * visitor's default initial context.
+   *
+   * \brief Run a context visitor on this type.
+   * \param v The visitor to run.
+   * \return The top-level context.
+   */
+  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
+    T init = v.initial(this);
+    accept(v, init);
+    return init;
   }
 
   /*!
@@ -408,6 +465,20 @@ public:
   }
 
   /*!
+   * This function runs a context visitor on this type, using the
+   * visitor's default initial context.
+   *
+   * \brief Run a context visitor on this type.
+   * \param v The visitor to run.
+   * \return The top-level context.
+   */
+  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
+    T init = v.initial(this);
+    accept(v, init);
+    return init;
+  }
+
+  /*!
    * This function builds a type from metadata.  It assumes the
    * metadata's type tag is GC_MD_GC_PTR, and the metadata node is
    * properly formatted
@@ -471,6 +542,20 @@ public:
 	fieldtys[i]->accept<T>(v, ctx);
 
     v.end(this, ctx, parent);
+  }
+
+  /*!
+   * This function runs a context visitor on this type, using the
+   * visitor's default initial context.
+   *
+   * \brief Run a context visitor on this type.
+   * \param v The visitor to run.
+   * \return The top-level context.
+   */
+  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
+    T init = v.initial(this);
+    accept(v, init);
+    return init;
   }
 
   /*!
@@ -549,6 +634,20 @@ public:
       v.end(this, ctx, parent);
     }
 
+  }
+
+  /*!
+   * This function runs a context visitor on this type, using the
+   * visitor's default initial context.
+   *
+   * \brief Run a context visitor on this type.
+   * \param v The visitor to run.
+   * \return The top-level context.
+   */
+  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
+    T init = v.initial(this);
+    accept(v, init);
+    return init;
   }
 
   /*!

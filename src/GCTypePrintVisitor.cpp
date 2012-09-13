@@ -21,6 +21,8 @@
 #include "GCType.h"
 #include "GCTypeVisitors.h"
 
+bool GCTypePrintVisitor::initial(const GCType*) { return true; }
+
 bool GCTypePrintVisitor::begin(const StructGCType* const ty,
 			       bool& ctx, bool& first) {
   ctx = true;

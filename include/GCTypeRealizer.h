@@ -38,6 +38,8 @@ public:
   GCTypeRealizer(llvm::Module& M, const GCParams& params) :
     M(M), params(params) {}
 
+  virtual TypeBuilder* initial(const GCType* ty);
+
   virtual bool begin(const StructGCType*, TypeBuilder*&, TypeBuilder*&);
   virtual bool begin(const FuncPtrGCType*, TypeBuilder*&, TypeBuilder*&);
   virtual bool begin(const ArrayGCType*, TypeBuilder*&, TypeBuilder*&);

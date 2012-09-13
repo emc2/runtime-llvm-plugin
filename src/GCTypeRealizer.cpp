@@ -23,7 +23,22 @@
 #include "GCTypeRealizer.h"
 #include "llvm/DerivedTypes.h"
 
-GCTypeRealizer::GCTypeRealizer(llvm::Module& M) : M(M) {}
+
+TypeBuilder* GCTypeRealizer::initial(const GCType* ty) {
+  // If we're building a type that has a direct GC representation (ie
+  // a structure or an array), then set the top-level context to NULL,
+  // which will result in end for those types writing their result
+  // contexts into the top-level.
+  switch(ty->getTypeID()) {
+  case GCType::StructTypeID:
+  case GCType::ArrayTypeID:
+    return NULL;
+  // Otherwise, just wrap the type in a single-field structure.
+  default:
+    // XXX possibly need to name the structure
+    return new StructTypeBuilder(1, "", false);
+  }
+}
 
 bool GCTypeRealizer::begin(const StructGCType* const gcty,
 			   TypeBuilder*& ctx,
@@ -49,23 +64,37 @@ bool GCTypeRealizer::begin(const ArrayGCType* const gcty,
   return true;
 }
 
+// Both structures and arrays might just be handed down to their
+// parents.
 void GCTypeRealizer::end(const StructGCType*,
 			 TypeBuilder*& ctx,
 			 TypeBuilder*& parent) {
-  parent->add(ctx->build(M));
-  delete ctx;
-  ctx = NULL;
-}
-
-void GCTypeRealizer::end(const FuncPtrGCType*,
-			 TypeBuilder*& ctx,
-			 TypeBuilder*& parent) {
-  parent->add(ctx->build(M));
-  delete ctx;
-  ctx = NULL;
+  if(NULL != parent) {
+    parent->add(ctx->build(M));
+    delete ctx;
+    ctx = NULL;
+  }
+  else {
+    parent = ctx;
+    ctx = NULL;
+  }
 }
 
 void GCTypeRealizer::end(const ArrayGCType*,
+			 TypeBuilder*& ctx,
+			 TypeBuilder*& parent) {
+  if(NULL != parent) {
+    parent->add(ctx->build(M));
+    delete ctx;
+    ctx = NULL;
+  }
+  else {
+    parent = ctx;
+    ctx = NULL;
+  }
+}
+
+void GCTypeRealizer::end(const FuncPtrGCType*,
 			 TypeBuilder*& ctx,
 			 TypeBuilder*& parent) {
   parent->add(ctx->build(M));
