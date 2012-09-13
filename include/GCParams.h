@@ -146,7 +146,7 @@ public:
    *
    * \brief Whether or not to generate trace functions.
    */
-  const bool traceFunc;
+  const bool traceFuncs;
 
   static const unsigned clusterSize;
 };
