@@ -27,23 +27,32 @@
 #include "GCTypeVisitors.h"
 #include <llvm/Support/raw_ostream.h>
 
+#include "GCParams.h"
+#include "GCTypeRealizer.h"
+
 bool parseGCTypes(llvm::Module& M,
 		  llvm::StringMap<const GCType*>& map) {
   const llvm::NamedMDNode* const md = M.getNamedMetadata("core.gc.types");
+  GCParams params(true, false, true, true, true, true, true, true);
   GCTypePrintVisitor print(llvm::outs());
-  bool first = true;
+  GCTypeRealizer realizer(M, params);
 
   for(unsigned int i = 0; i < md->getNumOperands(); i++) {
     const llvm::MDNode* const node = md->getOperand(i);
     const llvm::MDString* const tyname =
       llvm::cast<llvm::MDString>(node->getOperand(0));
+    /*
     const unsigned mutability =
       llvm::cast<llvm::ConstantInt>(node->getOperand(1))->getZExtValue();
+    */
     const llvm::MDNode* const desc =
       llvm::cast<llvm::MDNode>(node->getOperand(2));
     const GCType* const newty = GCType::get(M, desc);
 
-    newty->accept(print, first);
+    print.print(newty);
+    llvm::outs() << "\n";
+    llvm::outs() << tyname->getString() << "\n";
+    realizer.realize(newty, tyname->getString())->dump();
     llvm::outs() << "\n";
     map[tyname->getString()] = newty;
   }

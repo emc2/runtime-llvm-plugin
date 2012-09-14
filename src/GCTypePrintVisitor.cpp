@@ -21,8 +21,6 @@
 #include "GCType.h"
 #include "GCTypeVisitors.h"
 
-bool GCTypePrintVisitor::initial(const GCType*) { return true; }
-
 bool GCTypePrintVisitor::begin(const StructGCType* const ty,
 			       bool& ctx, bool& first) {
   ctx = true;
@@ -121,5 +119,6 @@ void GCTypePrintVisitor::endParams(const FuncPtrGCType*, bool&) {
 }
 
 void GCTypePrintVisitor::print(const GCType* ty) {
-  ty->accept(*this);
+  bool first = true;
+  ty->accept(*this, first);
 }

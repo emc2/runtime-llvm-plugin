@@ -25,13 +25,14 @@
 StructTypeBuilder::StructTypeBuilder(unsigned nfields,
 				     const llvm::StringRef tyname,
 				     bool packed) :
-  TypeBuilder(), field(0), tyname(tyname), packed(packed),
-  nfields(nfields), fields(new llvm::Type*[nfields]) {}
+  field(0), nfields(nfields), fields(new llvm::Type*[nfields]),
+  tyname(tyname), packed(packed) {}
 
 StructTypeBuilder::StructTypeBuilder(const StructGCType* const gcty,
 				     const llvm::StringRef tyname) :
-  TypeBuilder(), field(0), tyname(tyname), packed(gcty->isPacked()),
-  nfields(gcty->numFields()), fields(new llvm::Type*[gcty->numFields()]) {}
+  TypeBuilder(), field(0), nfields(gcty->numFields()),
+  fields(new llvm::Type*[gcty->numFields()]),
+  tyname(tyname), packed(gcty->isPacked()) {}
 
 StructTypeBuilder::~StructTypeBuilder() {
   delete[] fields;
@@ -43,19 +44,28 @@ void StructTypeBuilder::add(llvm::Type* const ty) {
 
 llvm::Type* StructTypeBuilder::build(llvm::Module& M) {
   llvm::ArrayRef<llvm::Type*> fieldarr(fields, nfields);
-  llvm::StructType* outty = M.getTypeByName(tyname);
+  llvm::StructType* outty;
 
-  if(NULL == outty)
-    outty = llvm::StructType::create(M.getContext(), tyname);
+  if("" != tyname) {
+    outty = M.getTypeByName(tyname);
 
-  outty->setBody(fieldarr, packed);
+    if(NULL == outty)
+      outty = llvm::StructType::create(M.getContext(), fieldarr,
+				       tyname, packed);
+    else
+      outty->setBody(fieldarr, packed);
+  }
+  else
+    outty = llvm::StructType::create(M.getContext(), fieldarr);
+
+  return outty;
 }
 
 ArrayTypeBuilder::ArrayTypeBuilder(const unsigned length) :
-  length(length), elemty(NULL) {}
+  elemty(NULL), length(length) {}
 
 ArrayTypeBuilder::ArrayTypeBuilder(const ArrayGCType* const gcty) :
-  length(gcty->getNumElems()), elemty(NULL) {}
+  elemty(NULL), length(gcty->getNumElems()) {}
 
 void ArrayTypeBuilder::add(llvm::Type* const ty) {
   elemty = ty;
@@ -67,12 +77,13 @@ llvm::Type* ArrayTypeBuilder::build(llvm::Module&) {
 
 FuncPtrTypeBuilder::FuncPtrTypeBuilder(const unsigned nparams,
 				       const bool vararg) :
-  nparams(nparams), vararg(vararg), retty(NULL), param(0),
-  params(new llvm::Type*[nparams]) {}
+  param(0), nparams(nparams), params(new llvm::Type*[nparams]),
+  retty(NULL), vararg(vararg) {}
 
 FuncPtrTypeBuilder::FuncPtrTypeBuilder(const FuncPtrGCType* gcty) :
-  nparams(gcty->numParams()), vararg(gcty->isVararg()), retty(NULL),
-  param(0), params(new llvm::Type*[gcty->numParams()]) {}
+  param(0), nparams(gcty->numParams()),
+  params(new llvm::Type*[gcty->numParams()]),
+  retty(NULL), vararg(gcty->isVararg()) {}
 
 FuncPtrTypeBuilder::~FuncPtrTypeBuilder() {
   delete[] params;

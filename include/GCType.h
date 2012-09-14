@@ -123,20 +123,6 @@ public:
    */
   template <typename T> void accept(GCTypeContextVisitor<T>& v,
 				    T& ctx) const;
-
-  /*!
-   * This function runs a context visitor on this type, using the
-   * visitor's default initial context.
-   *
-   * \brief Run a context visitor on this type.
-   * \param v The visitor to run.
-   * \return The top-level context.
-   */
-  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
-    T init = v.initial(this);
-    accept(v, init);
-    return init;
-  }
 };
 
 /*!
@@ -150,7 +136,7 @@ private:
 
   PrimGCType(llvm::Type* TypeRef,
 	     unsigned mutability = MutableID)
-    : TypeRef(TypeRef), GCType(PrimTypeID, mutability) {}
+    : GCType(PrimTypeID, mutability), TypeRef(TypeRef) {}
 
   static const PrimGCType* unitGCTy;
 public:
@@ -227,20 +213,6 @@ public:
 					  T& ctx) const {
     v.visit(this, ctx);
   }
-
-  /*!
-   * This function runs a context visitor on this type, using the
-   * visitor's default initial context.
-   *
-   * \brief Run a context visitor on this type.
-   * \param v The visitor to run.
-   * \return The top-level context.
-   */
-  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
-    T init = v.initial(this);
-    accept(v, init);
-    return init;
-  }
 };
 
 /*!
@@ -257,7 +229,7 @@ private:
   ArrayGCType(const GCType* Elem,
 	      unsigned nelems = 0,
 	      unsigned mutability = MutableID)
-    : GCType(ArrayTypeID, mutability), Elem(Elem), nelems(nelems) {}
+    : GCType(ArrayTypeID, mutability), nelems(nelems), Elem(Elem) {}
 public:
   /*!
    * This function runs a visitor on this type.
@@ -289,20 +261,6 @@ public:
       Elem->accept<T>(v, ctx);
 
     v.end(this, ctx, parent);
-  }
-
-  /*!
-   * This function runs a context visitor on this type, using the
-   * visitor's default initial context.
-   *
-   * \brief Run a context visitor on this type.
-   * \param v The visitor to run.
-   * \return The top-level context.
-   */
-  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
-    T init = v.initial(this);
-    accept(v, init);
-    return init;
   }
 
   /*!
@@ -366,20 +324,6 @@ public:
   template<typename T> inline void accept(GCTypeContextVisitor<T>& v,
 					  T& ctx) const {
     v.visit(this, ctx);
-  }
-
-  /*!
-   * This function runs a context visitor on this type, using the
-   * visitor's default initial context.
-   *
-   * \brief Run a context visitor on this type.
-   * \param v The visitor to run.
-   * \return The top-level context.
-   */
-  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
-    T init = v.initial(this);
-    accept(v, init);
-    return init;
   }
 
   /*!
@@ -465,20 +409,6 @@ public:
   }
 
   /*!
-   * This function runs a context visitor on this type, using the
-   * visitor's default initial context.
-   *
-   * \brief Run a context visitor on this type.
-   * \param v The visitor to run.
-   * \return The top-level context.
-   */
-  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
-    T init = v.initial(this);
-    accept(v, init);
-    return init;
-  }
-
-  /*!
    * This function builds a type from metadata.  It assumes the
    * metadata's type tag is GC_MD_GC_PTR, and the metadata node is
    * properly formatted
@@ -509,8 +439,8 @@ private:
 	       unsigned nfields,
 	       bool packed = false,
 	       unsigned mutability = MutableID)
-    : GCType(StructTypeID, mutability), nfields(nfields),
-      fieldtys(fieldtys), packed(packed) {}
+    : GCType(StructTypeID, mutability), fieldtys(fieldtys),
+      nfields(nfields), packed(packed) {}
 public:
 
   /*!
@@ -545,20 +475,6 @@ public:
   }
 
   /*!
-   * This function runs a context visitor on this type, using the
-   * visitor's default initial context.
-   *
-   * \brief Run a context visitor on this type.
-   * \param v The visitor to run.
-   * \return The top-level context.
-   */
-  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
-    T init = v.initial(this);
-    accept(v, init);
-    return init;
-  }
-
-  /*!
    * This function builds a type from metadata.  It assumes the
    * metadata's type tag is GC_MD_STRUCT, and the metadata node is
    * properly formatted
@@ -590,8 +506,8 @@ private:
 		unsigned nparams,
 		bool vararg = false,
 		unsigned mutability = MutableID)
-    : GCType(FuncPtrTypeID, mutability), nparams(nparams),
-      paramtys(paramtys), resty(resty), vararg(vararg) {}
+    : GCType(FuncPtrTypeID, mutability), resty(resty),
+      paramtys(paramtys), nparams(nparams), vararg(vararg) {}
 public:
 
   /*!
@@ -634,20 +550,6 @@ public:
       v.end(this, ctx, parent);
     }
 
-  }
-
-  /*!
-   * This function runs a context visitor on this type, using the
-   * visitor's default initial context.
-   *
-   * \brief Run a context visitor on this type.
-   * \param v The visitor to run.
-   * \return The top-level context.
-   */
-  template <typename T> inline T accept(GCTypeContextVisitor<T>& v) const {
-    T init = v.initial(this);
-    accept(v, init);
-    return init;
   }
 
   /*!

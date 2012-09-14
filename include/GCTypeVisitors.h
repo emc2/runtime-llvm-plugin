@@ -170,17 +170,6 @@ public:
 template<typename T> class GCTypeContextVisitor {
 public:
   /*!
-   * This function returns an initial context argument to use when
-   * visiting a type.  The type argument is the top-level type being
-   * visited.
-   *
-   * \brief Get the initial context.
-   * \param ty The top-level type being visited.
-   * \return The initial context value.
-   */
-  virtual T initial(const GCType* ty) = 0;
-
-  /*!
    * This is called when beginning to visit a structure.  If the
    * function returns true, it will continue to visit all the fields.
    * Otherwise, it will stop.
@@ -348,8 +337,6 @@ private:
   llvm::raw_ostream& stream;
 public:
   GCTypePrintVisitor(llvm::raw_ostream& stream) : stream(stream) {}
-
-  virtual bool initial(const GCType* ty);
 
   virtual bool begin(const StructGCType* ty, bool&, bool&);
   virtual bool begin(const FuncPtrGCType* ty, bool&, bool&);

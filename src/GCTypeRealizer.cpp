@@ -23,7 +23,7 @@
 #include "GCTypeRealizer.h"
 #include "llvm/DerivedTypes.h"
 
-
+/*
 TypeBuilder* GCTypeRealizer::initial(const GCType* ty) {
   // If we're building a type that has a direct GC representation (ie
   // a structure or an array), then set the top-level context to NULL,
@@ -39,7 +39,7 @@ TypeBuilder* GCTypeRealizer::initial(const GCType* ty) {
     return new StructTypeBuilder(1, "", false);
   }
 }
-
+*/
 bool GCTypeRealizer::begin(const StructGCType* const gcty,
 			   TypeBuilder*& ctx,
 			   TypeBuilder*&) {
@@ -70,7 +70,8 @@ void GCTypeRealizer::end(const StructGCType*,
 			 TypeBuilder*& ctx,
 			 TypeBuilder*& parent) {
   if(NULL != parent) {
-    parent->add(ctx->build(M));
+    llvm::Type* ty = ctx->build(M);
+    parent->add(ty);
     delete ctx;
     ctx = NULL;
   }
@@ -84,7 +85,8 @@ void GCTypeRealizer::end(const ArrayGCType*,
 			 TypeBuilder*& ctx,
 			 TypeBuilder*& parent) {
   if(NULL != parent) {
-    parent->add(ctx->build(M));
+    llvm::Type* ty = ctx->build(M);
+    parent->add(ty);
     delete ctx;
     ctx = NULL;
   }
@@ -97,7 +99,8 @@ void GCTypeRealizer::end(const ArrayGCType*,
 void GCTypeRealizer::end(const FuncPtrGCType*,
 			 TypeBuilder*& ctx,
 			 TypeBuilder*& parent) {
-  parent->add(ctx->build(M));
+  llvm::Type* ty = ctx->build(M);
+  parent->add(ty);
   delete ctx;
   ctx = NULL;
 }
@@ -114,7 +117,12 @@ void GCTypeRealizer::visit(const GCPtrGCType* const gcty,
 			   TypeBuilder*& ctx) {
   // XXX parameterize the generator by the GC type we want to generate
   llvm::Type* const ptrty = llvm::PointerType::getUnqual(gcty->getElemTy());
-  llvm::Type* const llvmty = llvm::ArrayType::get(ptrty, 2);
+  llvm::Type* llvmty;
+
+  if(params.doublePtrs)
+    llvmty = llvm::ArrayType::get(ptrty, 2);
+  else
+    llvmty = ptrty;
 
   ctx->add(llvmty);
 }
@@ -122,5 +130,16 @@ void GCTypeRealizer::visit(const GCPtrGCType* const gcty,
 // Primitive types are likewise opaque values
 void GCTypeRealizer::visit(const PrimGCType* const gcty,
 			   TypeBuilder*& ctx) {
-  ctx->add(gcty->getLLVMType());
+  llvm::Type* const ty = gcty->getLLVMType();
+  ctx->add(ty);
+}
+
+const llvm::Type* GCTypeRealizer::realize(const GCType* const ty,
+					  const llvm::StringRef name) {
+  TypeBuilder* builder = new StructTypeBuilder(1, name, true);
+  ty->accept(*this, builder);
+  const llvm::Type* const out = builder->build(M);
+  delete builder;
+
+  return out;
 }

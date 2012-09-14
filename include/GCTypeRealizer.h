@@ -18,6 +18,7 @@
 #ifndef _GC_TYPE_REALIZER_H_
 #define _GC_TYPE_REALIZER_H_
 
+#include "GCType.h"
 #include "GCTypeVisitors.h"
 #include "GCParams.h"
 #include "TypeBuilder.h"
@@ -38,8 +39,6 @@ public:
   GCTypeRealizer(llvm::Module& M, const GCParams& params) :
     M(M), params(params) {}
 
-  virtual TypeBuilder* initial(const GCType* ty);
-
   virtual bool begin(const StructGCType*, TypeBuilder*&, TypeBuilder*&);
   virtual bool begin(const FuncPtrGCType*, TypeBuilder*&, TypeBuilder*&);
   virtual bool begin(const ArrayGCType*, TypeBuilder*&, TypeBuilder*&);
@@ -52,8 +51,17 @@ public:
   virtual void visit(const GCPtrGCType*, TypeBuilder*&);
   virtual void visit(const PrimGCType*, TypeBuilder*&);
 
-  virtual bool beginParams(const FuncPtrGCType*, TypeBuilder*&);
-  virtual void endParams(const FuncPtrGCType*, TypeBuilder*&);
+  /*!
+   * This function realizes a GC type as an LLVM type by having the
+   * visitor visit the type.
+   *
+   * \brief Convert a GC type into an LLVM type.
+   * \param ty Type to convert.
+   * \param name The name of the type.
+   * \return The equivalent LLVM type.
+   */
+  virtual const llvm::Type* realize(const GCType* const ty,
+				    const llvm::StringRef name);
 };
 
 #endif
