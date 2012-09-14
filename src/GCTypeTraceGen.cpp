@@ -16,57 +16,134 @@
  * 02110-1301 USA
  */
 
+#define __STDC_LIMIT_MACROS 1
+#define __STDC_CONSTANT_MACROS 1
+#include "llvm/BasicBlock.h"
+#include "llvm/Constants.h"
+#include "llvm/Instructions.h"
+#include "GCType.h"
 #include "GCTypeTraceGen.h"
 
-bool GCTypeCopyGenVisitor::begin(const StructGCType*) {
-  idxstate.pushIndex();
+void getSrcDst(llvm::BasicBlock* const BB,
+	       struct IndexState& ctx,
+	       llvm::Value*& src,
+	       llvm::Value*& dst) {
+  if(NULL == ctx.loopidx) {
+    llvm::LLVMContext& C = BB->getContext();
+    llvm::IntegerType* const int32ty = llvm::Type::getInt32Ty(C);
+    llvm::Value* indexes[2] = {
+      llvm::ConstantInt::get(int32ty, 0, false),
+      llvm::ConstantInt::get(int32ty, ctx.idx++, false)
+    };
 
-  return true;
+    src = llvm::GetElementPtrInst::Create(ctx.src, indexes, "", BB);
+    dst = llvm::GetElementPtrInst::Create(ctx.dst, indexes, "", BB);
+  }
+  else {
+    src = ctx.src;
+    dst = ctx.dst;
+  }
+}
+
+bool GCTypeCopyGCTraceGen::begin(const StructGCType* const gcty,
+				 struct IndexState& ctx,
+				 struct IndexState& parent) {
+  getSrcDst(BB, parent, ctx.src, ctx.dst);
+  ctx.loopidx = NULL;
+  ctx.idx = 0;
+
+  return descend(gcty);
 }
 
 // Create a loop that iterates the elements of the array, and then
 // push the loop index variable.  Note: this assumes arrays are short,
 // or else not being clustered.
-bool GCTypeCopyGenVisitor::begin(const ArrayGCType* gcty) {
-  llvm::Context& C = BB->getContext();
-  llvm::Function* const F = BB->getParent();
-  llvm::BasicBlock* const loopBB = llvm::BasicBlock::Create(C, "", F, BB);
-  llvm::PHINode* const loopidx;
+bool GCTypeCopyGCTraceGen::begin(const ArrayGCType* const gcty,
+				 struct IndexState& ctx,
+				 struct IndexState& parent) {
+  bool out = descend(gcty);
 
-  // Polish off the old block
-  llvm::BranchInst::Create(loopBB, BB);
-  // Make the loop block the insert block
-  BB = loopBB;
+  if(out) {
+    llvm::LLVMContext& C = BB->getContext();
+    llvm::Function* const F = BB->getParent();
+    llvm::BasicBlock* const loopBB = llvm::BasicBlock::Create(C, "", F, BB);
+    llvm::IntegerType* const int64ty = llvm::Type::getInt64Ty(C);
+    llvm::Value* const constzero = llvm::ConstantInt::get(int64ty, 0, false);
+    llvm::PHINode* const loopidx =
+      llvm::PHINode::Create(int64ty, 2, "", loopBB);
 
-  // Push the 
-  idxstate.pushIndex(loopidx);
+    // Wire in the incoming zero
+    loopidx->addIncoming(constzero, BB);
+    // Polish off the old block
+    llvm::BranchInst::Create(loopBB, BB);
+    // Make the loop block the insert block
+    BB = loopBB;
 
-  return true;
+    // Create the new contex
+    llvm::IntegerType* const int32ty = llvm::Type::getInt32Ty(C);
+
+    if(NULL == parent.loopidx) {
+      llvm::Value* indexes[3] = {
+	llvm::ConstantInt::get(int32ty, 0, false),
+	llvm::ConstantInt::get(int32ty, parent.idx++, false),
+	loopidx
+      };
+
+      ctx.src = llvm::GetElementPtrInst::Create(parent.src, indexes,
+						"", loopBB);
+      ctx.dst = llvm::GetElementPtrInst::Create(parent.dst, indexes,
+						"", loopBB);
+    }
+    else {
+      llvm::Value* indexes[2] = {
+	llvm::ConstantInt::get(int32ty, 0, false),
+	loopidx
+      };
+
+      ctx.src = llvm::GetElementPtrInst::Create(parent.src, indexes,
+						"", loopBB);
+      ctx.dst = llvm::GetElementPtrInst::Create(parent.dst, indexes,
+						"", loopBB);
+    }
+
+    ctx.loopidx = loopidx;
+    ctx.idx = 0;
+  }
+
+  return out;
 }
 
-bool GCTypeCopyGenVisitor::begin(const FuncPtrGCType*) {
-  const llvm::Value* const idxsrc = getIndexedSrc();
-  const llvm::Value* const idxdst = getIndexedDst();
+bool GCTypeCopyGCTraceGen::begin(const FuncPtrGCType* const gcty,
+				 struct IndexState&,
+				 struct IndexState& parent) {
+  llvm::Value* src;
+  llvm::Value* dst;
 
-  visit(gcty, idxsrc, idxdst);
+  getSrcDst(BB, parent, src, dst);
+  visit(gcty, src, dst);
 
   return false;
 }
 
 
-void GCTypeCopyGenVisitor::end(const StructGCType*) {
-  idxstate.popIndex();
-}
-
-void GCTypeCopyGenVisitor::end(const ArrayGCType* gcty) {
-  llvm::BasicBlock* const newBB = llvm::BasicBlock::Create(C, "", F, loopBB);
-  llvm::PHINode* const loopidx =
-    llvm::cast<llvm::PHINode*>(idxstate.popIndex());
-  // XXX not done here
-  const llvm::Value* const inc =
-    LLVM::AddInst();
-  const llvm::Value* const len;
-  const llvm::Value* const cond = llvm::ICmpInst(BB, inc, len);
+void GCTypeCopyGCTraceGen::end(const ArrayGCType* gcty,
+			       struct IndexState& ctx,
+			       struct IndexState&) {
+  llvm::LLVMContext& C = BB->getContext();
+  llvm::Function* const F = BB->getParent();
+  llvm::BasicBlock* const newBB = llvm::BasicBlock::Create(C, "", F, BB);
+  llvm::PHINode* const loopidx = ctx.loopidx;
+  llvm::IntegerType* const int64ty = llvm::Type::getInt64Ty(C);
+  llvm::Value* const constone = llvm::ConstantInt::get(int64ty, 1, false);
+  llvm::Value* const inc =
+    llvm::BinaryOperator::CreateAdd(loopidx, constone, "", BB);
+  // Get the array's length
+  // XXX need to make provisions for non-clustered, yet variable
+  // sized arrays.
+  llvm::Value* const len =
+    llvm::ConstantInt::get(int64ty, gcty->getNumElems(), false);
+  llvm::Value* const cond =
+    new llvm::ICmpInst(*BB, llvm::CmpInst::ICMP_ULT, inc, len, "");
 
   // Add the incoming value for this block (the incremented variable)
   loopidx->addIncoming(inc, BB);
@@ -76,23 +153,59 @@ void GCTypeCopyGenVisitor::end(const ArrayGCType* gcty) {
   BB = newBB;
 }
 
-void GCTypeCopyGenVisitor::visit(const NativePtrGCType* const gcty) {
-  const llvm::Value* const idxsrc = getIndexedSrc();
-  const llvm::Value* const idxdst = getIndexedDst();
+void GCTypeCopyGCTraceGen::visit(const NativePtrGCType* const gcty,
+				 struct IndexState& ctx) {
+  llvm::Value* src;
+  llvm::Value* dst;
 
-  visit(gcty, idxsrc, idxdst);
+  getSrcDst(BB, ctx, src, dst);
+  visit(gcty, src, dst);
 }
 
-void GCTypeCopyGenVisitor::visit(const GCPtrGCType* const gcty) {
-  const llvm::Value* const idxsrc = getIndexedSrc();
-  const llvm::Value* const idxdst = getIndexedDst();
+void GCTypeCopyGCTraceGen::visit(const GCPtrGCType* const gcty,
+				 struct IndexState& ctx) {
+  llvm::Value* src;
+  llvm::Value* dst;
 
-  visit(gcty, idxsrc, idxdst);
+  getSrcDst(BB, ctx, src, dst);
+  visit(gcty, src, dst);
 }
 
-void GCTypeCopyGenVisitor::visit(const PrimGCType* const gcty) {
-  const llvm::Value* const idxsrc = getIndexedSrc();
-  const llvm::Value* const idxdst = getIndexedDst();
+void GCTypeCopyGCTraceGen::visit(const PrimGCType* const gcty,
+				 struct IndexState& ctx) {
+  llvm::Value* src;
+  llvm::Value* dst;
 
-  visit(gcty, idxsrc, idxdst);
+  getSrcDst(BB, ctx, src, dst);
+  visit(gcty, src, dst);
 }
+
+// XXX dummy implementation for testing
+bool GCTypeCopyCodeGen::descend(const StructGCType* ty) {
+  return true;
+}
+
+// XXX dummy implementation for testing
+bool GCTypeCopyCodeGen::descend(const ArrayGCType* ty) {
+  return true;
+}
+
+// XXX dummy implementation for testing
+void GCTypeCopyCodeGen::visit(const NativePtrGCType* gcty,
+			      const llvm::Value* src,
+			      const llvm::Value* dst) {}
+
+// XXX dummy implementation for testing
+void GCTypeCopyCodeGen::visit(const GCPtrGCType* gcty,
+			      const llvm::Value* src,
+			      const llvm::Value* dst) {}
+
+// XXX dummy implementation for testing
+void GCTypeCopyCodeGen::visit(const PrimGCType* gcty,
+			      const llvm::Value* src,
+			      const llvm::Value* dst) {}
+
+// XXX dummy implementation for testing
+void GCTypeCopyCodeGen::visit(const FuncPtrGCType* gcty,
+			      const llvm::Value* src,
+			      const llvm::Value* dst) {}
