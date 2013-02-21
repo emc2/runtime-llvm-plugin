@@ -440,6 +440,7 @@ bool UnitTestVisitor::beginParams(const FuncPtrGCType* const ty) {
     return script[index++].descend;
   } else {
     CPPUNIT_FAIL("Visitor saw more types than script describes");
+    return false;
   }
 }
 
