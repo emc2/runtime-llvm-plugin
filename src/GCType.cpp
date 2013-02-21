@@ -30,10 +30,54 @@
 class GCTypeUnitTest : public CppUnit::TestFixture  {
 
   CPPUNIT_TEST_SUITE(GCTypeUnitTest);
-  CPPUNIT_TEST(testGetUnit);
+  CPPUNIT_TEST(test_PrimGCType_getUnit);
+  CPPUNIT_TEST(test_PrimGCType_accept);
   CPPUNIT_TEST_SUITE_END();
 
-  void testGetUnit();
+  void test_PrimGCType_getUnit();
+  void test_PrimGCType_accept();
+
+};
+
+// Visitor for unit testing the visitor pattern.  It takes a script
+// describing the visitation pattern, and checks it along the way.
+class UnitTestVisitor : public GCTypeVisitor {
+public:
+
+  enum { VISIT, BEGIN, END, BEGINPARAMS, ENDPARAMS };
+
+  struct Action {
+    const GCType* const ty;
+    const unsigned action;
+    const bool descend;
+
+    Action(const GCType* const ty,
+           const unsigned action = VISIT,
+           const bool descend = false) :
+      ty(ty), action(action), descend(descend) {}
+  };
+
+  const Action* const script;
+  const unsigned len;
+  unsigned index;
+
+  UnitTestVisitor(const Action* const script,
+                  const unsigned len) :
+    GCTypeVisitor(), script(script), len(len), index(0) {}
+
+  inline void finish() { CPPUNIT_ASSERT(index == len); }
+
+  virtual bool begin(const StructGCType* const ty);
+  virtual bool begin(const FuncPtrGCType* const ty);
+  virtual bool begin(const ArrayGCType* const ty);
+  virtual void end(const StructGCType* const ty);
+  virtual void end(const FuncPtrGCType* const ty);
+  virtual void end(const ArrayGCType* const ty);
+  virtual void visit(const NativePtrGCType* ty);
+  virtual void visit(const GCPtrGCType* ty);
+  virtual void visit(const PrimGCType* ty);
+  virtual bool beginParams(const FuncPtrGCType* const ty);
+  virtual void endParams(const FuncPtrGCType* ty);
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(GCTypeUnitTest);
@@ -177,7 +221,7 @@ const PrimGCType* PrimGCType::getUnit() {
 }
 
 #ifdef UNIT_TEST
-void GCTypeUnitTest::testGetUnit() {
+void GCTypeUnitTest::test_PrimGCType_getUnit() {
   const PrimGCType* const type = PrimGCType::getUnit();
 
   CPPUNIT_ASSERT(NULL == type->getLLVMType());
@@ -218,6 +262,7 @@ const PrimGCType* PrimGCType::getFloat(const llvm::Module& M,
     llvm::cast<llvm::ConstantInt>(md->getOperand(1))->getZExtValue();
 
   switch(size) {
+  default: return NULL;
   case 16: return new PrimGCType(llvm::Type::getHalfTy(C), mutability);
   case 32: return new PrimGCType(llvm::Type::getFloatTy(C), mutability);
   case 64: return new PrimGCType(llvm::Type::getDoubleTy(C), mutability);
@@ -271,6 +316,17 @@ void PrimGCType::accept(GCTypeVisitor& v) const {
   v.visit(this);
 }
 
+#ifdef UNIT_TEST
+void GCTypeUnitTest::test_PrimGCType_accept() {
+  const PrimGCType* const type = PrimGCType::getUnit();
+  UnitTestVisitor::Action script[] = { UnitTestVisitor::Action(type) };
+  UnitTestVisitor visitor(script, 1);
+
+  type->accept(visitor);
+  visitor.finish();
+}
+#endif
+
 const char* const GCType::mutabilityStrs[] =
   { "immutable", "mutable", "writeonce" };
 
@@ -281,3 +337,119 @@ const char* const GCPtrGCType::mobilityStrs[] =
 
 const char* const GCPtrGCType::ptrClassStrs[] =
   { "strong", "soft", "weak", "phantom", "final" };
+
+// Unit test visitor implementation
+#ifdef UNIT_TEST
+bool UnitTestVisitor::begin(const StructGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == BEGIN);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    return script[index++].descend;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+    return false;
+  }
+}
+
+bool UnitTestVisitor::begin(const FuncPtrGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == BEGIN);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    return script[index++].descend;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+    return false;
+  }
+}
+
+bool UnitTestVisitor::begin(const ArrayGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == BEGIN);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    return script[index++].descend;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+    return false;
+  }
+}
+
+void UnitTestVisitor::end(const StructGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == END);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    index++;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+  }
+}
+
+void UnitTestVisitor::end(const FuncPtrGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == END);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    index++;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+  }
+}
+
+void UnitTestVisitor::end(const ArrayGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == END);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    index++;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+  }
+}
+
+void UnitTestVisitor::visit(const NativePtrGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == VISIT);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    index++;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+  }
+}
+
+void UnitTestVisitor::visit(const GCPtrGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == VISIT);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    index++;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+  }
+}
+
+void UnitTestVisitor::visit(const PrimGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == VISIT);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    index++;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+  }
+}
+
+bool UnitTestVisitor::beginParams(const FuncPtrGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == BEGINPARAMS);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    return script[index++].descend;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+  }
+}
+
+void UnitTestVisitor::endParams(const FuncPtrGCType* const ty) {
+  if(index < len) {
+    CPPUNIT_ASSERT(script[index].action == END);
+    CPPUNIT_ASSERT(script[index].ty == ty);
+    index++;
+  } else {
+    CPPUNIT_FAIL("Visitor saw more types than script describes");
+  }
+}
+#endif
