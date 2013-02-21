@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 
 project(runtime-llvm-plugin)
 
-set(CMAKE_CXX_FLAGS "-O3 -fno-rtti -fno-exceptions -Wall")
+set(CMAKE_CXX_FLAGS "-O3 -fno-rtti -fno-exceptions -Wall -Werror")
 
 set(SRCS
     src/GCParams.cpp
@@ -21,7 +21,7 @@ add_library(CORE ${SRCS})
 
 project(tests)
 
-set(CMAKE_CXX_FLAGS "-g -Wall -DUNIT_TEST")
+set(CMAKE_CXX_FLAGS "-g -Wall -Werror -DUNIT_TEST")
 
 set(RUN_TESTS_SRC src/test/RunTests.cpp)
 
