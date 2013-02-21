@@ -17,41 +17,46 @@
  */
 
 #include "GCParams.h"
+
+#ifdef UNIT_TEST
 #include <cppunit/extensions/HelperMacros.h>
 
 class GCParamsUnitTest : public CppUnit::TestFixture  {
 
-CPPUNIT_TEST_SUITE(GCParamsUnitTest);
-CPPUNIT_TEST(testGCParams);
-CPPUNIT_TEST_SUITE_END(); 
+  CPPUNIT_TEST_SUITE(GCParamsUnitTest);
+  CPPUNIT_TEST(testGCParams);
+  CPPUNIT_TEST_SUITE_END(); 
 
-  void testGCParams() {
-    GCParams writeLogging(true, false, false, false,
-                          false, false, false, false);
-    GCParams readBarriers(false, true, false, false,
-                          false, false, false, false);
-    GCParams clusterize(false, false, true, false,
-                        false, false, false, false);
-    GCParams generational(false, false, false, true,
-                          false, false, false, false);
-    GCParams doublePtrs(false, false, false, false,
-                        true, false, false, false);
-    GCParams copyFuncs(false, false, false, false,
-                       false, true, false, false);
-    GCParams moveFuncs(false, false, false, false,
-                       false, false, true, false);
-    GCParams traceFuncs(false, false, false, false,
-                        false, false, false, true);
-    CPPUNIT_ASSERT(writeLogging.writeLogging);
-    CPPUNIT_ASSERT(readBarriers.readBarriers);
-    CPPUNIT_ASSERT(clusterize.clusterize);
-    CPPUNIT_ASSERT(generational.generational);
-    CPPUNIT_ASSERT(doublePtrs.doublePtrs);
-    CPPUNIT_ASSERT(copyFuncs.copyFuncs);
-    CPPUNIT_ASSERT(moveFuncs.moveFuncs);
-    CPPUNIT_ASSERT(traceFuncs.traceFuncs);
-  }
-
+  void testGCParams();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(GCParamsUnitTest);
+
+void GCParamsUnitTest::testGCParams() {
+  GCParams writeLogging(true, false, false, false,
+                        false, false, false, false);
+  GCParams readBarriers(false, true, false, false,
+                        false, false, false, false);
+  GCParams clusterize(false, false, true, false,
+                      false, false, false, false);
+  GCParams generational(false, false, false, true,
+                        false, false, false, false);
+  GCParams doublePtrs(false, false, false, false,
+                      true, false, false, false);
+  GCParams copyFuncs(false, false, false, false,
+                     false, true, false, false);
+  GCParams moveFuncs(false, false, false, false,
+                     false, false, true, false);
+  GCParams traceFuncs(false, false, false, false,
+                      false, false, false, true);
+  CPPUNIT_ASSERT(writeLogging.writeLogging);
+  CPPUNIT_ASSERT(readBarriers.readBarriers);
+  CPPUNIT_ASSERT(clusterize.clusterize);
+  CPPUNIT_ASSERT(generational.generational);
+  CPPUNIT_ASSERT(doublePtrs.doublePtrs);
+  CPPUNIT_ASSERT(copyFuncs.copyFuncs);
+  CPPUNIT_ASSERT(moveFuncs.moveFuncs);
+  CPPUNIT_ASSERT(traceFuncs.traceFuncs);
+}
+
+#endif
