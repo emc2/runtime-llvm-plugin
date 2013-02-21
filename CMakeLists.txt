@@ -5,6 +5,7 @@ project(runtime-llvm-plugin)
 set(CMAKE_CXX_FLAGS "-O3 -fno-rtti -fno-exceptions -Wall")
 
 set(SRCS
+    src/GCParams.cpp
     src/GCType.cpp
     src/GCTypeVisitors.cpp
     src/ParseMetadataPass.cpp
@@ -22,12 +23,8 @@ project(tests)
 
 set(CMAKE_CXX_FLAGS "-g -Wall -DUNIT_TEST")
 
-set(UNIT_TEST_SRCS
-    src/test/UnitTests/GCParamsUnitTest.cpp
-   )
-
 set(RUN_TESTS_SRC src/test/RunTests.cpp)
 
 link_directories(/usr/lib64/llvm)
-add_executable(UnitTests ${RUN_TESTS_SRC} ${UNIT_TEST_SRCS} ${SRCS})
+add_executable(UnitTests ${RUN_TESTS_SRC} ${SRCS})
 target_link_libraries (UnitTests cppunit pthread ffi dl m LLVMCore LLVMSupport)
