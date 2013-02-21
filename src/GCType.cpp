@@ -24,6 +24,21 @@
 #include "llvm/Metadata.h"
 #include "llvm/Constants.h"
 
+#ifdef UNIT_TEST
+#include <cppunit/extensions/HelperMacros.h>
+
+class GCTypeUnitTest : public CppUnit::TestFixture  {
+
+  CPPUNIT_TEST_SUITE(GCTypeUnitTest);
+  CPPUNIT_TEST(testGetUnit);
+  CPPUNIT_TEST_SUITE_END();
+
+  void testGetUnit();
+};
+
+CPPUNIT_TEST_SUITE_REGISTRATION(GCTypeUnitTest);
+#endif
+
 static llvm::Type* getType(const llvm::Module& M,
 			   const llvm::MDString* desc) {
   const llvm::StringRef name = desc->getString();
@@ -161,7 +176,17 @@ const PrimGCType* PrimGCType::getUnit() {
   return unitGCTy;
 }
 
-// XXX Probably unique these types like LLVM does
+#ifdef UNIT_TEST
+void GCTypeUnitTest::testGetUnit() {
+  const PrimGCType* const type = PrimGCType::getUnit();
+
+  CPPUNIT_ASSERT(NULL == type->getLLVMType());
+  CPPUNIT_ASSERT(GCType::ImmutableID == type->mutability());
+  CPPUNIT_ASSERT(GCType::PrimTypeID == type->getTypeID());
+}
+#endif
+
+// XXX Probably should unique these types like LLVM does
 
 const PrimGCType* PrimGCType::getNamed(const llvm::Module& M,
 				       const llvm::MDNode* const md,

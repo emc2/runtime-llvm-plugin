@@ -5,14 +5,14 @@ project(runtime-llvm-plugin)
 set(CMAKE_CXX_FLAGS "-O3 -fno-rtti -fno-exceptions -Wall")
 
 set(SRCS
-  src/GCType.cpp
-  src/GCTypeVisitors.cpp
-  src/ParseMetadataPass.cpp
-  src/GCTypePrintVisitor.cpp
-  src/TypeBuilder.cpp
-  src/GCTypeRealizer.cpp
-  src/GCTypeTraceGen.cpp
-  )
+    src/GCType.cpp
+    src/GCTypeVisitors.cpp
+    src/ParseMetadataPass.cpp
+    src/GCTypePrintVisitor.cpp
+    src/TypeBuilder.cpp
+    src/GCTypeRealizer.cpp
+    src/GCTypeTraceGen.cpp
+   )
 
 include_directories("/usr/local/include/" "include/")
 
@@ -23,8 +23,8 @@ project(tests)
 set(CMAKE_CXX_FLAGS "-g -Wall -DUNIT_TEST")
 
 set(UNIT_TEST_SRCS
-  src/test/UnitTests/GCParamsUnitTest.cpp
-  )
+    src/test/UnitTests/GCParamsUnitTest.cpp
+   )
 
 set(RUN_TESTS_SRC src/test/RunTests.cpp)
 
