@@ -181,31 +181,31 @@ void GCTypeCopyGCTraceGen::visit(const PrimGCType* const gcty,
 }
 
 // XXX dummy implementation for testing
-bool GCTypeCopyCodeGen::descend(const StructGCType* ty) {
+bool GCTypeCopyGCTraceGen::descend(const StructGCType* ty) {
   return true;
 }
 
 // XXX dummy implementation for testing
-bool GCTypeCopyCodeGen::descend(const ArrayGCType* ty) {
+bool GCTypeCopyGCTraceGen::descend(const ArrayGCType* ty) {
   return true;
 }
 
 // XXX dummy implementation for testing
-void GCTypeCopyCodeGen::visit(const NativePtrGCType* gcty,
-			      const llvm::Value* src,
-			      const llvm::Value* dst) {}
+void GCTypeCopyGCTraceGen::visit(const NativePtrGCType* gcty,
+                                 const llvm::Value* src,
+                                 const llvm::Value* dst) {}
 
 // XXX dummy implementation for testing
-void GCTypeCopyCodeGen::visit(const GCPtrGCType* gcty,
-			      const llvm::Value* src,
-			      const llvm::Value* dst) {}
+void GCTypeCopyGCTraceGen::visit(const GCPtrGCType* gcty,
+                                 const llvm::Value* src,
+                                 const llvm::Value* dst) {}
 
 // XXX dummy implementation for testing
-void GCTypeCopyCodeGen::visit(const PrimGCType* gcty,
-			      const llvm::Value* src,
-			      const llvm::Value* dst) {}
+void GCTypeCopyGCTraceGen::visit(const PrimGCType* gcty,
+                                 const llvm::Value* src,
+                                 const llvm::Value* dst) {}
 
 // XXX dummy implementation for testing
-void GCTypeCopyCodeGen::visit(const FuncPtrGCType* gcty,
-			      const llvm::Value* src,
-			      const llvm::Value* dst) {}
+void GCTypeCopyGCTraceGen::visit(const FuncPtrGCType* gcty,
+                                 const llvm::Value* src,
+                                 const llvm::Value* dst) {}
