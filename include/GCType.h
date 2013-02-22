@@ -213,6 +213,20 @@ public:
 					  T& ctx) const {
     v.visit(this, ctx);
   }
+
+  static inline PrimGCType* narrow(GCType* const ty) {
+    if(GCType::PrimTypeID == ty->getTypeID()) {
+      return static_cast<PrimGCType*>(ty);
+    } else
+      return NULL;
+  }
+
+  static inline const PrimGCType* narrow(const GCType* const ty) {
+    if(GCType::PrimTypeID == ty->getTypeID()) {
+      return static_cast<const PrimGCType*>(ty);
+    } else
+      return NULL;
+  }
 };
 
 /*!
