@@ -239,9 +239,11 @@ void GCTypeUnitTest::test_PrimGCType_getUnit() {
   CPPUNIT_ASSERT(NULL == type->getLLVMType());
   CPPUNIT_ASSERT(GCType::ImmutableID == type->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == type->getTypeID());
-  //  CPPUNIT_ASSERT(NULL == got->getLLVMType());
-  CPPUNIT_ASSERT(GCType::ImmutableID == got->mutability());
-  CPPUNIT_ASSERT(GCType::PrimTypeID == got->getTypeID());
+  if(GCType::PrimTypeID == got->getTypeID()) {
+    CPPUNIT_ASSERT(NULL == PrimGCType::narrow(got)->getLLVMType());
+    CPPUNIT_ASSERT(GCType::ImmutableID == got->mutability());
+  } else
+    CPPUNIT_FAIL("Assertion failed: GCType::PrimTypeID == got->getTypeID()");
 }
 #endif
 
