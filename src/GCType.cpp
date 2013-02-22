@@ -20,9 +20,11 @@
 #define __STDC_CONSTANT_MACROS 1
 #include "GCType.h"
 #include "metadata.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/Metadata.h"
 #include "llvm/Constants.h"
+#include "llvm/DerivedTypes.h"
+#include "llvm/LLVMContext.h"
+#include "llvm/Metadata.h"
+#include "llvm/Module.h"
 
 #ifdef UNIT_TEST
 #include <cppunit/extensions/HelperMacros.h>
@@ -212,7 +214,7 @@ const PrimGCType* PrimGCType::get(llvm::LLVMContext &C,
 
 }
 */
-// Format: GC_MD_UNIT
+// Format: GC_MD_TYPE_UNIT
 const PrimGCType* PrimGCType::getUnit() {
   if(NULL == unitGCTy)
     unitGCTy = new PrimGCType(NULL, ImmutableID);;
@@ -223,10 +225,23 @@ const PrimGCType* PrimGCType::getUnit() {
 #ifdef UNIT_TEST
 void GCTypeUnitTest::test_PrimGCType_getUnit() {
   const PrimGCType* const type = PrimGCType::getUnit();
+  llvm::LLVMContext ctx;
+  llvm::Module mod(llvm::StringRef("Test"), ctx);
+  llvm::NamedMDNode* const testmd = mod.getOrInsertNamedMetadata("test");
+  llvm::Value* vals[] = {
+    llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), GC_MD_TYPE_UNIT),
+  };
+  llvm::MDNode* const md =
+    llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(vals));
+  testmd->addOperand(md);
+  const GCType* const got = GCType::get(mod, md, GCType::ImmutableID);
 
   CPPUNIT_ASSERT(NULL == type->getLLVMType());
   CPPUNIT_ASSERT(GCType::ImmutableID == type->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == type->getTypeID());
+  //  CPPUNIT_ASSERT(NULL == got->getLLVMType());
+  CPPUNIT_ASSERT(GCType::ImmutableID == got->mutability());
+  CPPUNIT_ASSERT(GCType::PrimTypeID == got->getTypeID());
 }
 #endif
 
@@ -242,7 +257,7 @@ const PrimGCType* PrimGCType::getNamed(const llvm::Module& M,
     return new PrimGCType(ty, mutability);
 }
 
-// Format: GC_MD_INT size
+// Format: GC_MD_TYPE_INT size
 const PrimGCType* PrimGCType::getInt(const llvm::Module& M,
 				     const llvm::MDNode* const md,
 				     const unsigned mutability) {
@@ -252,7 +267,23 @@ const PrimGCType* PrimGCType::getInt(const llvm::Module& M,
 
   return new PrimGCType(ty, mutability);
 }
+/*
+#ifdef UNIT_TEST
+void GCTypeUnitTest::test_PrimGCType_getInt() {
+  const llvm::LLVMContext ctx();
+  const llvm::Module("Test", ctx);
+  const PrimGCType* const type = PrimGCType::getUnit();
+  const llvm::Value* vals[] = {
+    llvm::ConstantInt::get(, GC_MD_TYPE_INT),
+    llvm::ConstantInt::get(, 1)
+  };
 
+  CPPUNIT_ASSERT(NULL == type->getLLVMType());
+  CPPUNIT_ASSERT(GCType::ImmutableID == type->mutability());
+  CPPUNIT_ASSERT(GCType::PrimTypeID == type->getTypeID());
+}
+#endif
+*/
 // Format: GC_MD_FLOAT size
 const PrimGCType* PrimGCType::getFloat(const llvm::Module& M,
 				       const llvm::MDNode* const md,
