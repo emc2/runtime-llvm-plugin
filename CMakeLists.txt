@@ -5,7 +5,6 @@ project(runtime-llvm-plugin)
 set(CMAKE_CXX_FLAGS "-O3 -fno-rtti -fno-exceptions -Wall -Werror")
 
 set(SRCS
-    src/GCParams.cpp
     src/GCType.cpp
     src/GCTypeVisitors.cpp
     src/ParseMetadataPass.cpp
@@ -21,10 +20,15 @@ add_library(CORE ${SRCS})
 
 project(tests)
 
-set(CMAKE_CXX_FLAGS "-g -Wall -Werror -DUNIT_TEST")
+set(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++0x")
+
+set(UNIT_TEST_SRCS
+    src/test/UnitTest/GCParamsUnitTest.cpp
+    src/test/UnitTest/GCTypeUnitTest.cpp
+   )
 
 set(RUN_TESTS_SRC src/test/RunTests.cpp)
 
 link_directories(/usr/lib64/llvm)
-add_executable(UnitTests ${RUN_TESTS_SRC} ${SRCS})
+add_executable(UnitTests ${RUN_TESTS_SRC} ${UNIT_TEST_SRCS} ${SRCS})
 target_link_libraries (UnitTests cppunit pthread ffi dl m LLVMCore LLVMSupport)
