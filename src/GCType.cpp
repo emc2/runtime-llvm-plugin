@@ -1,4 +1,4 @@
-/* Copyright (c) 2012 Eric McCorkle.
+/* Copyright (c) 2013 Eric McCorkle.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as
@@ -25,65 +25,6 @@
 #include "llvm/LLVMContext.h"
 #include "llvm/Metadata.h"
 #include "llvm/Module.h"
-
-#ifdef UNIT_TEST
-#include <cppunit/extensions/HelperMacros.h>
-
-class GCTypeUnitTest : public CppUnit::TestFixture  {
-
-  CPPUNIT_TEST_SUITE(GCTypeUnitTest);
-  CPPUNIT_TEST(test_PrimGCType_getUnit);
-  CPPUNIT_TEST(test_PrimGCType_accept);
-  CPPUNIT_TEST_SUITE_END();
-
-  void test_PrimGCType_getUnit();
-  void test_PrimGCType_accept();
-
-};
-
-// Visitor for unit testing the visitor pattern.  It takes a script
-// describing the visitation pattern, and checks it along the way.
-class UnitTestVisitor : public GCTypeVisitor {
-public:
-
-  enum { VISIT, BEGIN, END, BEGINPARAMS, ENDPARAMS };
-
-  struct Action {
-    const GCType* const ty;
-    const unsigned action;
-    const bool descend;
-
-    Action(const GCType* const ty,
-           const unsigned action = VISIT,
-           const bool descend = false) :
-      ty(ty), action(action), descend(descend) {}
-  };
-
-  const Action* const script;
-  const unsigned len;
-  unsigned index;
-
-  UnitTestVisitor(const Action* const script,
-                  const unsigned len) :
-    GCTypeVisitor(), script(script), len(len), index(0) {}
-
-  inline void finish() { CPPUNIT_ASSERT(index == len); }
-
-  virtual bool begin(const StructGCType* const ty);
-  virtual bool begin(const FuncPtrGCType* const ty);
-  virtual bool begin(const ArrayGCType* const ty);
-  virtual void end(const StructGCType* const ty);
-  virtual void end(const FuncPtrGCType* const ty);
-  virtual void end(const ArrayGCType* const ty);
-  virtual void visit(const NativePtrGCType* ty);
-  virtual void visit(const GCPtrGCType* ty);
-  virtual void visit(const PrimGCType* ty);
-  virtual bool beginParams(const FuncPtrGCType* const ty);
-  virtual void endParams(const FuncPtrGCType* ty);
-};
-
-CPPUNIT_TEST_SUITE_REGISTRATION(GCTypeUnitTest);
-#endif
 
 static llvm::Type* getType(const llvm::Module& M,
 			   const llvm::MDString* desc) {
@@ -222,31 +163,6 @@ const PrimGCType* PrimGCType::getUnit() {
   return unitGCTy;
 }
 
-#ifdef UNIT_TEST
-void GCTypeUnitTest::test_PrimGCType_getUnit() {
-  const PrimGCType* const type = PrimGCType::getUnit();
-  llvm::LLVMContext ctx;
-  llvm::Module mod(llvm::StringRef("Test"), ctx);
-  llvm::NamedMDNode* const testmd = mod.getOrInsertNamedMetadata("test");
-  llvm::Value* vals[] = {
-    llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), GC_MD_TYPE_UNIT),
-  };
-  llvm::MDNode* const md =
-    llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(vals));
-  testmd->addOperand(md);
-  const GCType* const got = GCType::get(mod, md, GCType::ImmutableID);
-
-  CPPUNIT_ASSERT(NULL == type->getLLVMType());
-  CPPUNIT_ASSERT(GCType::ImmutableID == type->mutability());
-  CPPUNIT_ASSERT(GCType::PrimTypeID == type->getTypeID());
-  if(GCType::PrimTypeID == got->getTypeID()) {
-    CPPUNIT_ASSERT(NULL == PrimGCType::narrow(got)->getLLVMType());
-    CPPUNIT_ASSERT(GCType::ImmutableID == got->mutability());
-  } else
-    CPPUNIT_FAIL("Assertion failed: GCType::PrimTypeID == got->getTypeID()");
-}
-#endif
-
 // XXX Probably should unique these types like LLVM does
 
 const PrimGCType* PrimGCType::getNamed(const llvm::Module& M,
@@ -269,23 +185,7 @@ const PrimGCType* PrimGCType::getInt(const llvm::Module& M,
 
   return new PrimGCType(ty, mutability);
 }
-/*
-#ifdef UNIT_TEST
-void GCTypeUnitTest::test_PrimGCType_getInt() {
-  const llvm::LLVMContext ctx();
-  const llvm::Module("Test", ctx);
-  const PrimGCType* const type = PrimGCType::getUnit();
-  const llvm::Value* vals[] = {
-    llvm::ConstantInt::get(, GC_MD_TYPE_INT),
-    llvm::ConstantInt::get(, 1)
-  };
 
-  CPPUNIT_ASSERT(NULL == type->getLLVMType());
-  CPPUNIT_ASSERT(GCType::ImmutableID == type->mutability());
-  CPPUNIT_ASSERT(GCType::PrimTypeID == type->getTypeID());
-}
-#endif
-*/
 // Format: GC_MD_FLOAT size
 const PrimGCType* PrimGCType::getFloat(const llvm::Module& M,
 				       const llvm::MDNode* const md,
@@ -349,17 +249,6 @@ void PrimGCType::accept(GCTypeVisitor& v) const {
   v.visit(this);
 }
 
-#ifdef UNIT_TEST
-void GCTypeUnitTest::test_PrimGCType_accept() {
-  const PrimGCType* const type = PrimGCType::getUnit();
-  UnitTestVisitor::Action script[] = { UnitTestVisitor::Action(type) };
-  UnitTestVisitor visitor(script, 1);
-
-  type->accept(visitor);
-  visitor.finish();
-}
-#endif
-
 const char* const GCType::mutabilityStrs[] =
   { "immutable", "mutable", "writeonce" };
 
@@ -370,120 +259,3 @@ const char* const GCPtrGCType::mobilityStrs[] =
 
 const char* const GCPtrGCType::ptrClassStrs[] =
   { "strong", "soft", "weak", "phantom", "final" };
-
-// Unit test visitor implementation
-#ifdef UNIT_TEST
-bool UnitTestVisitor::begin(const StructGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == BEGIN);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    return script[index++].descend;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-    return false;
-  }
-}
-
-bool UnitTestVisitor::begin(const FuncPtrGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == BEGIN);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    return script[index++].descend;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-    return false;
-  }
-}
-
-bool UnitTestVisitor::begin(const ArrayGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == BEGIN);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    return script[index++].descend;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-    return false;
-  }
-}
-
-void UnitTestVisitor::end(const StructGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == END);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    index++;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-  }
-}
-
-void UnitTestVisitor::end(const FuncPtrGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == END);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    index++;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-  }
-}
-
-void UnitTestVisitor::end(const ArrayGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == END);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    index++;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-  }
-}
-
-void UnitTestVisitor::visit(const NativePtrGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == VISIT);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    index++;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-  }
-}
-
-void UnitTestVisitor::visit(const GCPtrGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == VISIT);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    index++;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-  }
-}
-
-void UnitTestVisitor::visit(const PrimGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == VISIT);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    index++;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-  }
-}
-
-bool UnitTestVisitor::beginParams(const FuncPtrGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == BEGINPARAMS);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    return script[index++].descend;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-    return false;
-  }
-}
-
-void UnitTestVisitor::endParams(const FuncPtrGCType* const ty) {
-  if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == END);
-    CPPUNIT_ASSERT(script[index].ty == ty);
-    index++;
-  } else {
-    CPPUNIT_FAIL("Visitor saw more types than script describes");
-  }
-}
-#endif
