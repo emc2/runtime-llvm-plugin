@@ -368,6 +368,21 @@ public:
   static const NativePtrGCType* get(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability);
+
+  static inline NativePtrGCType* narrow(GCType* const ty) {
+    if(GCType::NativePtrTypeID == ty->getTypeID()) {
+      return static_cast<NativePtrGCType*>(ty);
+    } else
+      return NULL;
+  }
+
+  static inline const NativePtrGCType* narrow(const GCType* const ty) {
+    if(GCType::NativePtrTypeID == ty->getTypeID()) {
+      return static_cast<const NativePtrGCType*>(ty);
+    } else
+      return NULL;
+  }
+
 };
 
 /*!
