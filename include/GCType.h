@@ -290,6 +290,21 @@ public:
   static const ArrayGCType* get(const llvm::Module& M,
 				const llvm::MDNode* md,
 				unsigned mutability);
+
+  static inline ArrayGCType* narrow(GCType* const ty) {
+    if(GCType::ArrayTypeID == ty->getTypeID()) {
+      return static_cast<ArrayGCType*>(ty);
+    } else
+      return NULL;
+  }
+
+  static inline const ArrayGCType* narrow(const GCType* const ty) {
+    if(GCType::ArrayTypeID == ty->getTypeID()) {
+      return static_cast<const ArrayGCType*>(ty);
+    } else
+      return NULL;
+  }
+
 };
 
 class PtrGCType : public GCType {
