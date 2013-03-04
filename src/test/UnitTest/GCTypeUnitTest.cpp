@@ -32,6 +32,9 @@ public:
 
   llvm::LLVMContext ctx;
   llvm::Module mod;
+  const llvm::StringRef tyname;
+  llvm::MDString* const tynamemd;
+  llvm::Type* const opaquetype;
   llvm::NamedMDNode* const testmd;
   const PrimGCType* const unittype;
   llvm::Value* const unittag;
@@ -124,6 +127,9 @@ public:
 
   GCTypeUnitTest() :
     ctx(), mod(llvm::StringRef("Test"), ctx),
+    tyname(llvm::StringRef("test")),
+    tynamemd(llvm::MDString::get(ctx, tyname)),
+    opaquetype(llvm::StructType::create(ctx, tyname)),
     testmd(mod.getOrInsertNamedMetadata("test")),
     unittype(PrimGCType::getUnit()),
     unittag(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx),
@@ -226,8 +232,8 @@ public:
     arrtooshortmd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(arrtooshortvals))
     ),
-    nativeptrvals({ nativeptrtag, int32md }),
-    nativeptrtoolongvals({ nativeptrtag, int32md, const0 }),
+    nativeptrvals({ nativeptrtag, tynamemd }),
+    nativeptrtoolongvals({ nativeptrtag, tynamemd, const0 }),
     nativeptrtooshortvals({ nativeptrtag }),
     nativeptrmd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(nativeptrvals))
@@ -238,15 +244,17 @@ public:
     nativeptrtooshortmd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(nativeptrtooshortvals))
     ),
-    gcptrstrongvals({ gcptrtag, mutabletag, mobiletag, strongtag, int32md }),
-    gcptrsoftvals({ gcptrtag, mutabletag, mobiletag, softtag, int32md }),
-    gcptrweakvals({ gcptrtag, mutabletag, mobiletag, weaktag, int32md }),
+    gcptrstrongvals({ gcptrtag, mutabletag, mobiletag, strongtag, tynamemd }),
+    gcptrsoftvals({ gcptrtag, mutabletag, mobiletag, softtag, tynamemd }),
+    gcptrweakvals({ gcptrtag, mutabletag, mobiletag, weaktag, tynamemd }),
     gcptrfinalizervals(
       { gcptrtag, mutabletag, mobiletag, finalizertag, int32md }
     ),
-    gcptrphantomvals({ gcptrtag, mutabletag, mobiletag, phantomtag, int32md }),
-    gcptrwoelemvals({ gcptrtag, writeoncetag, mobiletag, strongtag, int32md }),
-    gcptrimmelemvals({ gcptrtag, immutabletag, mobiletag, strongtag, int32md }),
+    gcptrphantomvals({ gcptrtag, mutabletag, mobiletag, phantomtag, tynamemd }),
+    gcptrwoelemvals({ gcptrtag, writeoncetag, mobiletag, strongtag, tynamemd }),
+    gcptrimmelemvals(
+      { gcptrtag, immutabletag, mobiletag, strongtag, tynamemd }
+    ),
     gcptrimmobilevals(
       { gcptrtag, mutabletag, immobiletag, strongtag, int32md }
     ),
@@ -323,20 +331,45 @@ public:
 
   CPPUNIT_TEST_SUITE(GCTypeUnitTest);
   CPPUNIT_TEST(test_PrimGCType_getUnit);
-  CPPUNIT_TEST(test_PrimGCType_getInt);
+  CPPUNIT_TEST(test_GCType_get_unit);
+  CPPUNIT_TEST(test_PrimGCType_getInt_1);
+  CPPUNIT_TEST(test_PrimGCType_getInt_8);
+  CPPUNIT_TEST(test_PrimGCType_getInt_16);
+  CPPUNIT_TEST(test_PrimGCType_getInt_32);
+  CPPUNIT_TEST(test_PrimGCType_getInt_64);
+  CPPUNIT_TEST(test_PrimGCType_getInt_128);
+  CPPUNIT_TEST(test_GCType_get_int_1);
+  CPPUNIT_TEST(test_GCType_get_int_8);
+  CPPUNIT_TEST(test_GCType_get_int_16);
+  CPPUNIT_TEST(test_GCType_get_int_32);
+  CPPUNIT_TEST(test_GCType_get_int_64);
+  CPPUNIT_TEST(test_GCType_get_int_128);
   CPPUNIT_TEST(test_PrimGCType_accept);
   CPPUNIT_TEST(test_ArrayGCType_get);
   CPPUNIT_TEST(test_ArrayGCType_accept_unsized_descend);
   CPPUNIT_TEST(test_ArrayGCType_accept_unsized_nodescend);
   CPPUNIT_TEST(test_ArrayGCType_accept_sized_descend);
   CPPUNIT_TEST(test_ArrayGCType_accept_sized_nodescend);
-  //CPPUNIT_TEST(test_NativePtrGCType_get);
-  //CPPUNIT_TEST(test_NativePtrGCType_accept);
+  CPPUNIT_TEST(test_NativePtrGCType_get);
+  CPPUNIT_TEST(test_GCType_get_NativePtr);
+  CPPUNIT_TEST(test_NativePtrGCType_accept);
   CPPUNIT_TEST(test_GCPtrGCType_accept);
   CPPUNIT_TEST_SUITE_END();
 
   void test_PrimGCType_getUnit();
-  void test_PrimGCType_getInt();
+  void test_GCType_get_unit();
+  void test_PrimGCType_getInt_1();
+  void test_PrimGCType_getInt_8();
+  void test_PrimGCType_getInt_16();
+  void test_PrimGCType_getInt_32();
+  void test_PrimGCType_getInt_64();
+  void test_PrimGCType_getInt_128();
+  void test_GCType_get_int_1();
+  void test_GCType_get_int_8();
+  void test_GCType_get_int_16();
+  void test_GCType_get_int_32();
+  void test_GCType_get_int_64();
+  void test_GCType_get_int_128();
   void test_PrimGCType_accept();
   void test_ArrayGCType_get();
   void test_ArrayGCType_accept_unsized_descend();
@@ -344,6 +377,7 @@ public:
   void test_ArrayGCType_accept_sized_descend();
   void test_ArrayGCType_accept_sized_nodescend();
   void test_NativePtrGCType_get();
+  void test_GCType_get_NativePtr();
   void test_NativePtrGCType_accept();
   void test_GCPtrGCType_accept();
 
@@ -508,15 +542,12 @@ void UnitTestVisitor::endParams(const FuncPtrGCType* const ty) {
 }
 
 void GCTypeUnitTest::test_PrimGCType_getUnit() {
-
-  // Test 1: Test getUnit by itself
   CPPUNIT_ASSERT(NULL == unittype->getLLVMType());
   CPPUNIT_ASSERT(GCType::ImmutableID == unittype->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == unittype->getTypeID());
+}
 
-  // Set up a metadata describing a unit type
-
-  // Test 2: test parsing the metadata, starting with Immutable
+void GCTypeUnitTest::test_GCType_get_unit() {
   const GCType* const got = GCType::get(mod, unitmd, GCType::ImmutableID);
 
   if(GCType::PrimTypeID == got->getTypeID()) {
@@ -549,7 +580,7 @@ void GCTypeUnitTest::test_PrimGCType_getUnit() {
   // the test for the top-level get.
 }
 
-void GCTypeUnitTest::test_PrimGCType_getInt() {
+void GCTypeUnitTest::test_PrimGCType_getInt_1() {
 
   // setup metadata that's too long and too short
 
@@ -571,6 +602,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint1type->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint1type->getTypeID());
 
+}
+
+void GCTypeUnitTest::test_PrimGCType_getInt_8() {
   const PrimGCType* const immint8type =
     PrimGCType::getInt(mod, int8md, GCType::ImmutableID);
   const PrimGCType* const mutint8type =
@@ -587,7 +621,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
   CPPUNIT_ASSERT(llvm::Type::getInt8Ty(ctx) == woint8type->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint8type->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint8type->getTypeID());
+}
 
+void GCTypeUnitTest::test_PrimGCType_getInt_16() {
   const PrimGCType* const immint16type =
     PrimGCType::getInt(mod, int16md, GCType::ImmutableID);
   const PrimGCType* const mutint16type =
@@ -604,7 +640,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
   CPPUNIT_ASSERT(llvm::Type::getInt16Ty(ctx) == woint16type->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint16type->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint16type->getTypeID());
+}
 
+void GCTypeUnitTest::test_PrimGCType_getInt_32() {
   const PrimGCType* const immint32type =
     PrimGCType::getInt(mod, int32md, GCType::ImmutableID);
   const PrimGCType* const mutint32type =
@@ -621,7 +659,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
   CPPUNIT_ASSERT(llvm::Type::getInt32Ty(ctx) == woint32type->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint32type->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint32type->getTypeID());
+}
 
+void GCTypeUnitTest::test_PrimGCType_getInt_64() {
   const PrimGCType* const immint64type =
     PrimGCType::getInt(mod, int64md, GCType::ImmutableID);
   const PrimGCType* const mutint64type =
@@ -638,7 +678,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
   CPPUNIT_ASSERT(llvm::Type::getInt64Ty(ctx) == woint64type->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint64type->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint64type->getTypeID());
+}
 
+void GCTypeUnitTest::test_PrimGCType_getInt_128() {
   const PrimGCType* const immint128type =
     PrimGCType::getInt(mod, int128md, GCType::ImmutableID);
   const PrimGCType* const mutint128type =
@@ -658,10 +700,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
                  immint128type->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint128type->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint128type->getTypeID());
+}
 
-  // Test 2: getInt by itself on bad metadata
-
-  // Test 3: Parse metadata with GCType::get
+void GCTypeUnitTest::test_GCType_get_int_1() {
   const GCType* const immint1gctype =
     GCType::get(mod, int1md, GCType::ImmutableID);
   const GCType* const mutint1gctype =
@@ -681,7 +722,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
                  PrimGCType::narrow(woint1gctype)->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint1gctype->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint1gctype->getTypeID());
+}
 
+void GCTypeUnitTest::test_GCType_get_int_8() {
   const GCType* const immint8gctype =
     GCType::get(mod, int8md, GCType::ImmutableID);
   const GCType* const mutint8gctype =
@@ -701,7 +744,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
                  PrimGCType::narrow(woint8gctype)->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint8gctype->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint8gctype->getTypeID());
+}
 
+void GCTypeUnitTest::test_GCType_get_int_16() {
   const GCType* const immint16gctype =
     GCType::get(mod, int16md, GCType::ImmutableID);
   const GCType* const mutint16gctype =
@@ -721,7 +766,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
                  PrimGCType::narrow(woint16gctype)->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint16gctype->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint16gctype->getTypeID());
+}
 
+void GCTypeUnitTest::test_GCType_get_int_32() {
   const GCType* const immint32gctype =
     GCType::get(mod, int32md, GCType::ImmutableID);
   const GCType* const mutint32gctype =
@@ -741,7 +788,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
                  PrimGCType::narrow(woint32gctype)->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint32gctype->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint32gctype->getTypeID());
+}
 
+void GCTypeUnitTest::test_GCType_get_int_64() {
   const GCType* const immint64gctype =
     GCType::get(mod, int64md, GCType::ImmutableID);
   const GCType* const mutint64gctype =
@@ -761,7 +810,9 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
                  PrimGCType::narrow(woint64gctype)->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint64gctype->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint64gctype->getTypeID());
+}
 
+void GCTypeUnitTest::test_GCType_get_int_128() {
   const GCType* const immint128gctype =
     GCType::get(mod, int128md, GCType::ImmutableID);
   const GCType* const mutint128gctype =
@@ -781,8 +832,6 @@ void GCTypeUnitTest::test_PrimGCType_getInt() {
                  PrimGCType::narrow(woint128gctype)->getLLVMType());
   CPPUNIT_ASSERT(GCType::WriteOnceID == woint128gctype->mutability());
   CPPUNIT_ASSERT(GCType::PrimTypeID == woint128gctype->getTypeID());
-
-  // Test 4: test parsing bad metadata
 }
 
 void GCTypeUnitTest::test_ArrayGCType_get() {
@@ -1008,31 +1057,78 @@ void GCTypeUnitTest::test_ArrayGCType_get() {
 }
 
 void GCTypeUnitTest::test_NativePtrGCType_get() {
-
-  // setup metadata that's too long and too short
-
-  // Test 1: Test getInt by itself on all good metadata
   const NativePtrGCType* const immtype =
-    NativePtrGCType::get(mod, int1md, GCType::ImmutableID);
+    NativePtrGCType::get(mod, nativeptrmd, GCType::ImmutableID);
   const NativePtrGCType* const muttype =
-    NativePtrGCType::get(mod, int1md, GCType::MutableID);
+    NativePtrGCType::get(mod, nativeptrmd, GCType::MutableID);
   const NativePtrGCType* const wotype =
-    NativePtrGCType::get(mod, int1md, GCType::WriteOnceID);
+    NativePtrGCType::get(mod, nativeptrmd, GCType::WriteOnceID);
 
-  CPPUNIT_ASSERT(llvm::Type::getInt32Ty(ctx) == immtype->getElemTy());
+  CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
   CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
   CPPUNIT_ASSERT(GCType::NativePtrTypeID == immtype->getTypeID());
 
-  CPPUNIT_ASSERT(llvm::Type::getInt32Ty(ctx) == muttype->getElemTy());
+  CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
   CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
   CPPUNIT_ASSERT(GCType::NativePtrTypeID == muttype->getTypeID());
 
-  CPPUNIT_ASSERT(llvm::Type::getInt32Ty(ctx) == wotype->getElemTy());
+  CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
   CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
   CPPUNIT_ASSERT(GCType::NativePtrTypeID == wotype->getTypeID());
-
 }
 
+void GCTypeUnitTest::test_GCType_get_NativePtr() {
+  const GCType* const immtype =
+    GCType::get(mod, nativeptrmd, GCType::ImmutableID);
+  const GCType* const muttype =
+    GCType::get(mod, nativeptrmd, GCType::MutableID);
+  const GCType* const wotype =
+    GCType::get(mod, nativeptrmd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+
+  if(GCType::NativePtrTypeID == immtype->getTypeID())
+    CPPUNIT_ASSERT(opaquetype == NativePtrGCType::narrow(immtype)->getElemTy());
+  else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::NativePtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+
+  if(GCType::NativePtrTypeID == immtype->getTypeID())
+    CPPUNIT_ASSERT(opaquetype == NativePtrGCType::narrow(muttype)->getElemTy());
+  else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::NativePtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+
+  if(GCType::NativePtrTypeID == immtype->getTypeID())
+    CPPUNIT_ASSERT(opaquetype == NativePtrGCType::narrow(wotype)->getElemTy());
+  else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::NativePtrTypeID");
+
+}
+/*
+void GCTypeUnitTest::test_GCPtrGCType_get_strong() {
+  const NativePtrGCType* const immtype =
+    NativePtrGCType::get(mod, gcptrstrongmd, GCType::ImmutableID);
+  const NativePtrGCType* const muttype =
+    NativePtrGCType::get(mod, gcptrstrongmd, GCType::MutableID);
+  const NativePtrGCType* const wotype =
+    NativePtrGCType::get(mod, gcptrstrongmd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+  CPPUNIT_ASSERT(GCType::NativePtrTypeID == immtype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+  CPPUNIT_ASSERT(GCType::NativePtrTypeID == muttype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+  CPPUNIT_ASSERT(GCType::NativePtrTypeID == wotype->getTypeID());
+}
+*/
 void GCTypeUnitTest::test_PrimGCType_accept() {
   const PrimGCType* const type = PrimGCType::getUnit();
   UnitTestVisitor::Action script[] = { UnitTestVisitor::Action(type) };
@@ -1110,7 +1206,7 @@ void GCTypeUnitTest::test_GCPtrGCType_accept() {
 
 void GCTypeUnitTest::test_NativePtrGCType_accept() {
   const NativePtrGCType* const type =
-    NativePtrGCType::get(mod, int1md, GCType::ImmutableID);
+    NativePtrGCType::get(mod, nativeptrmd, GCType::ImmutableID);
   UnitTestVisitor::Action script[] = { UnitTestVisitor::Action(type) };
   UnitTestVisitor visitor(script, 1);
 
