@@ -132,19 +132,21 @@ const NativePtrGCType* NativePtrGCType::get(const llvm::Module& M,
   return new NativePtrGCType(innerty, mutability);
 }
 
-// Format: GC_MD_GCPTR mobility ptrclass inner
+// Format: GC_MD_GCPTR mutability mobility ptrclass inner
 const GCPtrGCType* GCPtrGCType::get(const llvm::Module& M,
 				    const llvm::MDNode* md,
 				    unsigned mutability) {
-  const unsigned mobility =
+  const unsigned elemmutability =
     llvm::cast<llvm::ConstantInt>(md->getOperand(1))->getZExtValue();
-  const unsigned ptrclass =
+  const unsigned mobility =
     llvm::cast<llvm::ConstantInt>(md->getOperand(2))->getZExtValue();
+  const unsigned ptrclass =
+    llvm::cast<llvm::ConstantInt>(md->getOperand(3))->getZExtValue();
   const llvm::MDString* inner =
-    llvm::cast<llvm::MDString>(md->getOperand(3));  
+    llvm::cast<llvm::MDString>(md->getOperand(4));  
   llvm::Type* innerty = getType(M, inner);
 
-  return new GCPtrGCType(innerty, mutability, mobility, ptrclass);
+  return new GCPtrGCType(innerty, elemmutability, mobility, ptrclass);
 }
 
 // Format: GC_MD_INT size
