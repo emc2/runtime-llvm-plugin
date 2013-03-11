@@ -413,8 +413,8 @@ public:
     StrongPtrID,
     SoftPtrID,
     WeakPtrID,
-    PhantomPtrID,
-    FinalPtrID
+    FinalizerPtrID,
+    PhantomPtrID
   };
 
   static const char* const ptrClassStrs[];
@@ -465,6 +465,21 @@ public:
   static const GCPtrGCType* get(const llvm::Module& M,
 				const llvm::MDNode* md,
 				unsigned mutability = MutableID);
+
+  static inline GCPtrGCType* narrow(GCType* const ty) {
+    if(GCType::GCPtrTypeID == ty->getTypeID()) {
+      return static_cast<GCPtrGCType*>(ty);
+    } else
+      return NULL;
+  }
+
+  static inline const GCPtrGCType* narrow(const GCType* const ty) {
+    if(GCType::GCPtrTypeID == ty->getTypeID()) {
+      return static_cast<const GCPtrGCType*>(ty);
+    } else
+      return NULL;
+  }
+
 };
 
 
