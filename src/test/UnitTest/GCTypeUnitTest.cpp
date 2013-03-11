@@ -104,23 +104,19 @@ public:
   llvm::MDNode* const nativeptrmd;
   llvm::MDNode* const nativeptrtoolongmd;
   llvm::MDNode* const nativeptrtooshortmd;
-  llvm::Value* const gcptrstrongvals[5];
-  llvm::Value* const gcptrsoftvals[5];
-  llvm::Value* const gcptrweakvals[5];
-  llvm::Value* const gcptrfinalizervals[5];
-  llvm::Value* const gcptrphantomvals[5];
-  llvm::Value* const gcptrwoelemvals[5];
-  llvm::Value* const gcptrimmelemvals[5];
-  llvm::Value* const gcptrimmobilevals[5];
-  llvm::Value* const gcptrtoolongvals[6];
-  llvm::Value* const gcptrtooshortvals[4];
+  llvm::Value* const gcptrstrongvals[4];
+  llvm::Value* const gcptrsoftvals[4];
+  llvm::Value* const gcptrweakvals[4];
+  llvm::Value* const gcptrfinalizervals[4];
+  llvm::Value* const gcptrphantomvals[4];
+  llvm::Value* const gcptrimmobilevals[4];
+  llvm::Value* const gcptrtoolongvals[5];
+  llvm::Value* const gcptrtooshortvals[3];
   llvm::MDNode* const gcptrstrongmd;
   llvm::MDNode* const gcptrsoftmd;
   llvm::MDNode* const gcptrweakmd;
   llvm::MDNode* const gcptrfinalizermd;
   llvm::MDNode* const gcptrphantommd;
-  llvm::MDNode* const gcptrwoelemmd;
-  llvm::MDNode* const gcptrimmelemmd;
   llvm::MDNode* const gcptrimmobilemd;
   llvm::MDNode* const gcptrtoolongmd;
   llvm::MDNode* const gcptrtooshortmd;
@@ -244,26 +240,14 @@ public:
     nativeptrtooshortmd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(nativeptrtooshortvals))
     ),
-    gcptrstrongvals({ gcptrtag, mutabletag, mobiletag, strongtag, tynamemd }),
-    gcptrsoftvals({ gcptrtag, mutabletag, mobiletag, softtag, tynamemd }),
-    gcptrweakvals({ gcptrtag, mutabletag, mobiletag, weaktag, tynamemd }),
-    gcptrfinalizervals(
-      { gcptrtag, mutabletag, mobiletag, finalizertag, int32md }
-    ),
-    gcptrphantomvals({ gcptrtag, mutabletag, mobiletag, phantomtag, tynamemd }),
-    gcptrwoelemvals({ gcptrtag, writeoncetag, mobiletag, strongtag, tynamemd }),
-    gcptrimmelemvals(
-      { gcptrtag, immutabletag, mobiletag, strongtag, tynamemd }
-    ),
-    gcptrimmobilevals(
-      { gcptrtag, mutabletag, immobiletag, strongtag, int32md }
-    ),
-    gcptrtoolongvals(
-      { gcptrtag, mutabletag, mobiletag, strongtag, int32md, const0 }
-    ),
-    gcptrtooshortvals(
-      { gcptrtag, mutabletag, mobiletag, strongtag }
-    ),
+    gcptrstrongvals({ gcptrtag, mobiletag, strongtag, tynamemd }),
+    gcptrsoftvals({ gcptrtag, mobiletag, softtag, tynamemd }),
+    gcptrweakvals({ gcptrtag, mobiletag, weaktag, tynamemd }),
+    gcptrfinalizervals({ gcptrtag, mobiletag, finalizertag, tynamemd }),
+    gcptrphantomvals({ gcptrtag, mobiletag, phantomtag, tynamemd }),
+    gcptrimmobilevals({ gcptrtag, immobiletag, strongtag, tynamemd }),
+    gcptrtoolongvals({ gcptrtag, mobiletag, strongtag, tynamemd, const0 }),
+    gcptrtooshortvals({ gcptrtag, mobiletag, strongtag }),
     gcptrstrongmd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(gcptrstrongvals))
     ),
@@ -278,12 +262,6 @@ public:
     ),
     gcptrphantommd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(gcptrphantomvals))
-    ),
-    gcptrwoelemmd(
-      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(gcptrwoelemvals))
-    ),
-    gcptrimmelemmd(
-      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(gcptrimmelemvals))
     ),
     gcptrimmobilemd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(gcptrimmobilevals))
@@ -322,8 +300,6 @@ public:
     testmd->addOperand(gcptrweakmd);
     testmd->addOperand(gcptrfinalizermd);
     testmd->addOperand(gcptrphantommd);
-    testmd->addOperand(gcptrwoelemmd);
-    testmd->addOperand(gcptrimmelemmd);
     testmd->addOperand(gcptrimmobilemd);
     testmd->addOperand(gcptrtoolongmd);
     testmd->addOperand(gcptrtooshortmd);
@@ -353,6 +329,19 @@ public:
   CPPUNIT_TEST(test_NativePtrGCType_get);
   CPPUNIT_TEST(test_GCType_get_NativePtr);
   CPPUNIT_TEST(test_NativePtrGCType_accept);
+  CPPUNIT_TEST(test_GCPtrGCType_get_strong);
+  CPPUNIT_TEST(test_GCPtrGCType_get_soft);
+  CPPUNIT_TEST(test_GCPtrGCType_get_weak);
+  CPPUNIT_TEST(test_GCPtrGCType_get_finalizer);
+  CPPUNIT_TEST(test_GCPtrGCType_get_phantom);
+  CPPUNIT_TEST(test_GCPtrGCType_get_mobile);
+  CPPUNIT_TEST(test_GCPtrGCType_get_immobile);
+  CPPUNIT_TEST(test_GCType_get_GCPtr_strong);
+  CPPUNIT_TEST(test_GCType_get_GCPtr_weak);
+  CPPUNIT_TEST(test_GCType_get_GCPtr_soft);
+  CPPUNIT_TEST(test_GCType_get_GCPtr_finalizer);
+  CPPUNIT_TEST(test_GCType_get_GCPtr_phantom);
+  CPPUNIT_TEST(test_GCType_get_GCPtr_immobile);
   CPPUNIT_TEST(test_GCPtrGCType_accept);
   CPPUNIT_TEST_SUITE_END();
 
@@ -379,6 +368,19 @@ public:
   void test_NativePtrGCType_get();
   void test_GCType_get_NativePtr();
   void test_NativePtrGCType_accept();
+  void test_GCPtrGCType_get_strong();
+  void test_GCPtrGCType_get_soft();
+  void test_GCPtrGCType_get_weak();
+  void test_GCPtrGCType_get_finalizer();
+  void test_GCPtrGCType_get_phantom();
+  void test_GCPtrGCType_get_mobile();
+  void test_GCPtrGCType_get_immobile();
+  void test_GCType_get_GCPtr_strong();
+  void test_GCType_get_GCPtr_weak();
+  void test_GCType_get_GCPtr_soft();
+  void test_GCType_get_GCPtr_finalizer();
+  void test_GCType_get_GCPtr_phantom();
+  void test_GCType_get_GCPtr_immobile();
   void test_GCPtrGCType_accept();
 
 };
@@ -1107,28 +1109,391 @@ void GCTypeUnitTest::test_GCType_get_NativePtr() {
     CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::NativePtrTypeID");
 
 }
-/*
+
 void GCTypeUnitTest::test_GCPtrGCType_get_strong() {
-  const NativePtrGCType* const immtype =
-    NativePtrGCType::get(mod, gcptrstrongmd, GCType::ImmutableID);
-  const NativePtrGCType* const muttype =
-    NativePtrGCType::get(mod, gcptrstrongmd, GCType::MutableID);
-  const NativePtrGCType* const wotype =
-    NativePtrGCType::get(mod, gcptrstrongmd, GCType::WriteOnceID);
+  const GCPtrGCType* const immtype =
+    GCPtrGCType::get(mod, gcptrstrongmd, GCType::ImmutableID);
+  const GCPtrGCType* const muttype =
+    GCPtrGCType::get(mod, gcptrstrongmd, GCType::MutableID);
+  const GCPtrGCType* const wotype =
+    GCPtrGCType::get(mod, gcptrstrongmd, GCType::WriteOnceID);
 
   CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::StrongPtrID == immtype->getPtrClass());
   CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
-  CPPUNIT_ASSERT(GCType::NativePtrTypeID == immtype->getTypeID());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == immtype->getTypeID());
 
   CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::StrongPtrID == muttype->getPtrClass());
   CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
-  CPPUNIT_ASSERT(GCType::NativePtrTypeID == muttype->getTypeID());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == muttype->getTypeID());
 
   CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::StrongPtrID == wotype->getPtrClass());
   CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
-  CPPUNIT_ASSERT(GCType::NativePtrTypeID == wotype->getTypeID());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == wotype->getTypeID());
 }
-*/
+
+void GCTypeUnitTest::test_GCPtrGCType_get_soft() {
+  const GCPtrGCType* const immtype =
+    GCPtrGCType::get(mod, gcptrsoftmd, GCType::ImmutableID);
+  const GCPtrGCType* const muttype =
+    GCPtrGCType::get(mod, gcptrsoftmd, GCType::MutableID);
+  const GCPtrGCType* const wotype =
+    GCPtrGCType::get(mod, gcptrsoftmd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::SoftPtrID == immtype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == immtype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::SoftPtrID == muttype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == muttype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::SoftPtrID == wotype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == wotype->getTypeID());
+}
+
+void GCTypeUnitTest::test_GCPtrGCType_get_weak() {
+  const GCPtrGCType* const immtype =
+    GCPtrGCType::get(mod, gcptrweakmd, GCType::ImmutableID);
+  const GCPtrGCType* const muttype =
+    GCPtrGCType::get(mod, gcptrweakmd, GCType::MutableID);
+  const GCPtrGCType* const wotype =
+    GCPtrGCType::get(mod, gcptrweakmd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::WeakPtrID == immtype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == immtype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::WeakPtrID == muttype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == muttype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::WeakPtrID == wotype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == wotype->getTypeID());
+}
+
+void GCTypeUnitTest::test_GCPtrGCType_get_finalizer() {
+  const GCPtrGCType* const immtype =
+    GCPtrGCType::get(mod, gcptrfinalizermd, GCType::ImmutableID);
+  const GCPtrGCType* const muttype =
+    GCPtrGCType::get(mod, gcptrfinalizermd, GCType::MutableID);
+  const GCPtrGCType* const wotype =
+    GCPtrGCType::get(mod, gcptrfinalizermd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::FinalizerPtrID == immtype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == immtype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::FinalizerPtrID == muttype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == muttype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::FinalizerPtrID == wotype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == wotype->getTypeID());
+}
+
+void GCTypeUnitTest::test_GCPtrGCType_get_phantom() {
+  const GCPtrGCType* const immtype =
+    GCPtrGCType::get(mod, gcptrphantommd, GCType::ImmutableID);
+  const GCPtrGCType* const muttype =
+    GCPtrGCType::get(mod, gcptrphantommd, GCType::MutableID);
+  const GCPtrGCType* const wotype =
+    GCPtrGCType::get(mod, gcptrphantommd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::PhantomPtrID == immtype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == immtype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::PhantomPtrID == muttype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == muttype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::PhantomPtrID == wotype->getPtrClass());
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == wotype->getTypeID());
+}
+
+void GCTypeUnitTest::test_GCPtrGCType_get_mobile() {
+  const GCPtrGCType* const immtype =
+    GCPtrGCType::get(mod, gcptrstrongmd, GCType::ImmutableID);
+  const GCPtrGCType* const muttype =
+    GCPtrGCType::get(mod, gcptrstrongmd, GCType::MutableID);
+  const GCPtrGCType* const wotype =
+    GCPtrGCType::get(mod, gcptrstrongmd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::MobileID == immtype->getMobility());
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == immtype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::MobileID == muttype->getMobility());
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == muttype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::MobileID == wotype->getMobility());
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == wotype->getTypeID());
+}
+
+void GCTypeUnitTest::test_GCPtrGCType_get_immobile() {
+  const GCPtrGCType* const immtype =
+    GCPtrGCType::get(mod, gcptrimmobilemd, GCType::ImmutableID);
+  const GCPtrGCType* const muttype =
+    GCPtrGCType::get(mod, gcptrimmobilemd, GCType::MutableID);
+  const GCPtrGCType* const wotype =
+    GCPtrGCType::get(mod, gcptrimmobilemd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(opaquetype == immtype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::ImmobileID == immtype->getMobility());
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == immtype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == muttype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::ImmobileID == muttype->getMobility());
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == muttype->getTypeID());
+
+  CPPUNIT_ASSERT(opaquetype == wotype->getElemTy());
+  CPPUNIT_ASSERT(GCPtrGCType::ImmobileID == wotype->getMobility());
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+  CPPUNIT_ASSERT(GCType::GCPtrTypeID == wotype->getTypeID());
+}
+
+void GCTypeUnitTest::test_GCType_get_GCPtr_strong() {
+  const GCType* const immtype =
+    GCType::get(mod, gcptrstrongmd, GCType::ImmutableID);
+  const GCType* const muttype =
+    GCType::get(mod, gcptrstrongmd, GCType::MutableID);
+  const GCType* const wotype =
+    GCType::get(mod, gcptrstrongmd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(immtype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::StrongPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(muttype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::StrongPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(wotype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::StrongPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+}
+
+void GCTypeUnitTest::test_GCType_get_GCPtr_weak() {
+  const GCType* const immtype =
+    GCType::get(mod, gcptrweakmd, GCType::ImmutableID);
+  const GCType* const muttype =
+    GCType::get(mod, gcptrweakmd, GCType::MutableID);
+  const GCType* const wotype =
+    GCType::get(mod, gcptrweakmd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(immtype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::WeakPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(muttype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::WeakPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(wotype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::WeakPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+}
+
+void GCTypeUnitTest::test_GCType_get_GCPtr_soft() {
+  const GCType* const immtype =
+    GCType::get(mod, gcptrsoftmd, GCType::ImmutableID);
+  const GCType* const muttype =
+    GCType::get(mod, gcptrsoftmd, GCType::MutableID);
+  const GCType* const wotype =
+    GCType::get(mod, gcptrsoftmd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(immtype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::SoftPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(muttype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::SoftPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(wotype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::SoftPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+}
+
+void GCTypeUnitTest::test_GCType_get_GCPtr_finalizer() {
+  const GCType* const immtype =
+    GCType::get(mod, gcptrfinalizermd, GCType::ImmutableID);
+  const GCType* const muttype =
+    GCType::get(mod, gcptrfinalizermd, GCType::MutableID);
+  const GCType* const wotype =
+    GCType::get(mod, gcptrfinalizermd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(immtype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::FinalizerPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(muttype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::FinalizerPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(wotype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::FinalizerPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+}
+
+void GCTypeUnitTest::test_GCType_get_GCPtr_phantom() {
+  const GCType* const immtype =
+    GCType::get(mod, gcptrphantommd, GCType::ImmutableID);
+  const GCType* const muttype =
+    GCType::get(mod, gcptrphantommd, GCType::MutableID);
+  const GCType* const wotype =
+    GCType::get(mod, gcptrphantommd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(immtype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::PhantomPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(muttype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::PhantomPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(wotype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::PhantomPtrID == ty->getPtrClass());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+}
+
+void GCTypeUnitTest::test_GCType_get_GCPtr_immobile() {
+  const GCType* const immtype =
+    GCType::get(mod, gcptrimmobilemd, GCType::ImmutableID);
+  const GCType* const muttype =
+    GCType::get(mod, gcptrimmobilemd, GCType::MutableID);
+  const GCType* const wotype =
+    GCType::get(mod, gcptrimmobilemd, GCType::WriteOnceID);
+
+  CPPUNIT_ASSERT(GCType::ImmutableID == immtype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(immtype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::ImmobileID == ty->getMobility());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::MutableID == muttype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(muttype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::ImmobileID == ty->getMobility());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+
+  CPPUNIT_ASSERT(GCType::WriteOnceID == wotype->mutability());
+
+  if(GCType::GCPtrTypeID == immtype->getTypeID()) {
+    const GCPtrGCType* const ty = GCPtrGCType::narrow(wotype);
+    CPPUNIT_ASSERT(opaquetype == ty->getElemTy());
+    CPPUNIT_ASSERT(GCPtrGCType::ImmobileID == ty->getMobility());
+  } else
+    CPPUNIT_FAIL("Assertion failed: getTypeID() == GCType::GCPtrTypeID");
+}
+
 void GCTypeUnitTest::test_PrimGCType_accept() {
   const PrimGCType* const type = PrimGCType::getUnit();
   UnitTestVisitor::Action script[] = { UnitTestVisitor::Action(type) };
