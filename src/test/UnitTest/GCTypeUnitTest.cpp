@@ -43,6 +43,8 @@ public:
   llvm::Value* const arrtag;
   llvm::Value* const nativeptrtag;
   llvm::Value* const gcptrtag;
+  llvm::Value* const structtag;
+  llvm::Value* const functag;
   llvm::Value* const mobiletag;
   llvm::Value* const immobiletag;
   llvm::Value* const mutabletag;
@@ -53,6 +55,8 @@ public:
   llvm::Value* const weaktag;
   llvm::Value* const finalizertag;
   llvm::Value* const phantomtag;
+  llvm::Value* const consttrue;
+  llvm::Value* const constfalse;
   llvm::Value* const const0;
   llvm::Value* const const1;
   llvm::Value* const const8;
@@ -120,6 +124,70 @@ public:
   llvm::MDNode* const gcptrimmobilemd;
   llvm::MDNode* const gcptrtoolongmd;
   llvm::MDNode* const gcptrtooshortmd;
+  llvm::Value* const immint1fieldvals[2];
+  llvm::Value* const mutint1fieldvals[2];
+  llvm::Value* const woint1fieldvals[2];
+  llvm::Value* const immint8fieldvals[2];
+  llvm::Value* const mutint8fieldvals[2];
+  llvm::Value* const woint8fieldvals[2];
+  llvm::Value* const immint32fieldvals[2];
+  llvm::Value* const mutint32fieldvals[2];
+  llvm::Value* const woint32fieldvals[2];
+  llvm::Value* const immnativeptrfieldvals[2];
+  llvm::Value* const mutnativeptrfieldvals[2];
+  llvm::Value* const wonativeptrfieldvals[2];
+  llvm::Value* const immgcptrfieldvals[2];
+  llvm::Value* const mutgcptrfieldvals[2];
+  llvm::Value* const wogcptrfieldvals[2];
+  llvm::Value* const immarrayfieldvals[2];
+  llvm::Value* const mutarrayfieldvals[2];
+  llvm::Value* const woarrayfieldvals[2];
+  llvm::MDNode* const immint1fieldmd;
+  llvm::MDNode* const mutint1fieldmd;
+  llvm::MDNode* const woint1fieldmd;
+  llvm::MDNode* const immint8fieldmd;
+  llvm::MDNode* const mutint8fieldmd;
+  llvm::MDNode* const woint8fieldmd;
+  llvm::MDNode* const immint32fieldmd;
+  llvm::MDNode* const mutint32fieldmd;
+  llvm::MDNode* const woint32fieldmd;
+  llvm::MDNode* const immnativeptrfieldmd;
+  llvm::MDNode* const mutnativeptrfieldmd;
+  llvm::MDNode* const wonativeptrfieldmd;
+  llvm::MDNode* const immgcptrfieldmd;
+  llvm::MDNode* const mutgcptrfieldmd;
+  llvm::MDNode* const wogcptrfieldmd;
+  llvm::MDNode* const immarrayfieldmd;
+  llvm::MDNode* const mutarrayfieldmd;
+  llvm::MDNode* const woarrayfieldmd;
+  llvm::Value* const structnormvals[5];
+  llvm::Value* const structstrictvals[5];
+  llvm::Value* const structallwovals[5];
+  llvm::Value* const structallimmvals[5];
+  llvm::MDNode* const structnormmd;
+  llvm::MDNode* const structstrictmd;
+  llvm::MDNode* const structallwomd;
+  llvm::MDNode* const structallimmmd;
+  llvm::Value* const immstructnormfieldvals[2];
+  llvm::Value* const wostructnormfieldvals[2];
+  llvm::Value* const mutstructnormfieldvals[2];
+  llvm::Value* const structallwofieldvals[2];
+  llvm::Value* const structallimmfieldvals[2];
+  llvm::MDNode* const immstructnormfieldmd;
+  llvm::MDNode* const wostructnormfieldmd;
+  llvm::MDNode* const mutstructnormfieldmd;
+  llvm::MDNode* const structallwofieldmd;
+  llvm::MDNode* const structallimmfieldmd;
+  llvm::Value* const structnestedvals[4];
+  llvm::Value* const structimmnestedvals[4];
+  llvm::Value* const structimmnestedvals2[4];
+  llvm::Value* const structwonestedvals[4];
+  llvm::Value* const structwonestedvals2[4];
+  llvm::MDNode* const structnestedmd;
+  llvm::MDNode* const structimmnestedmd;
+  llvm::MDNode* const structimmnestedmd2;
+  llvm::MDNode* const structwonestedmd;
+  llvm::MDNode* const structwonestedmd2;
 
   GCTypeUnitTest() :
     ctx(), mod(llvm::StringRef("Test"), ctx),
@@ -139,6 +207,10 @@ public:
                                         GC_MD_TYPE_NATIVEPTR)),
     gcptrtag(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx),
                                     GC_MD_TYPE_GCPTR)),
+    structtag(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx),
+                                     GC_MD_TYPE_STRUCT)),
+    functag(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx),
+                                   GC_MD_TYPE_FUNC)),
     mobiletag(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx),
                                      GC_MD_MOB_MOBILE)),
     immobiletag(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx),
@@ -159,6 +231,8 @@ public:
                                         GC_MD_PTRCLASS_FINALIZER)),
     phantomtag(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx),
                                       GC_MD_PTRCLASS_PHANTOM)),
+    consttrue(llvm::ConstantInt::get(llvm::Type::getInt1Ty(ctx), 1)),
+    constfalse(llvm::ConstantInt::get(llvm::Type::getInt1Ty(ctx), 0)),
     const0(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 0)),
     const1(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 1)),
     const8(llvm::ConstantInt::get(llvm::Type::getInt32Ty(ctx), 8)),
@@ -271,6 +345,148 @@ public:
     ),
     gcptrtooshortmd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(gcptrtooshortvals))
+    ),
+    immint1fieldvals({ immutabletag, int1md }),
+    mutint1fieldvals({ mutabletag, int1md }),
+    woint1fieldvals({ writeoncetag, int1md }),
+    immint8fieldvals({ immutabletag, int8md }),
+    mutint8fieldvals({ mutabletag, int8md }),
+    woint8fieldvals({ writeoncetag, int8md }),
+    immint32fieldvals({ immutabletag, int32md }),
+    mutint32fieldvals({ mutabletag, int32md }),
+    woint32fieldvals({ writeoncetag, int32md }),
+    immnativeptrfieldvals({ immutabletag, nativeptrmd }),
+    mutnativeptrfieldvals({ mutabletag, nativeptrmd }),
+    wonativeptrfieldvals({ writeoncetag, nativeptrmd }),
+    immgcptrfieldvals({ immutabletag, gcptrstrongmd }),
+    mutgcptrfieldvals({ mutabletag, gcptrstrongmd }),
+    wogcptrfieldvals({ writeoncetag,gcptrstrongmd }),
+    immarrayfieldvals({ immutabletag, sizedarrmd }),
+    mutarrayfieldvals({ mutabletag, sizedarrmd }),
+    woarrayfieldvals({ writeoncetag, sizedarrmd }),
+    immint1fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(immint1fieldvals))
+    ),
+    mutint1fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(mutint1fieldvals))
+    ),
+    woint1fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(woint1fieldvals))
+    ),
+    immint8fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(immint8fieldvals))
+    ),
+    mutint8fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(mutint8fieldvals))
+    ),
+    woint8fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(woint8fieldvals))
+    ),
+    immint32fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(immint32fieldvals))
+    ),
+    mutint32fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(mutint32fieldvals))
+    ),
+    woint32fieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(woint32fieldvals))
+    ),
+    immnativeptrfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(immnativeptrfieldvals))
+    ),
+    mutnativeptrfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(mutnativeptrfieldvals))
+    ),
+    wonativeptrfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(wonativeptrfieldvals))
+    ),
+    immgcptrfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(immgcptrfieldvals))
+    ),
+    mutgcptrfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(mutgcptrfieldvals))
+    ),
+    wogcptrfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(wogcptrfieldvals))
+    ),
+    immarrayfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(immarrayfieldvals))
+    ),
+    mutarrayfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(mutarrayfieldvals))
+    ),
+    woarrayfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(woarrayfieldvals))
+    ),
+    structnormvals({ structtag, constfalse, immint32fieldmd,
+                     wonativeptrfieldmd, mutarrayfieldmd }),
+    structstrictvals({ structtag, consttrue, immint32fieldmd,
+                       wonativeptrfieldmd, mutarrayfieldmd }),
+    structallwovals({ structtag, constfalse, woint32fieldmd,
+                      wonativeptrfieldmd, woarrayfieldmd }),
+    structallimmvals({ structtag, constfalse, immint32fieldmd,
+                       immnativeptrfieldmd, immarrayfieldmd }),
+    structnormmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structnormvals))
+    ),
+    structstrictmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structstrictvals))
+    ),
+    structallwomd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structallwovals))
+    ),
+    structallimmmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structallimmvals))
+    ),
+    immstructnormfieldvals({ immutabletag, structnormmd }),
+    wostructnormfieldvals({ writeoncetag, structnormmd }),
+    mutstructnormfieldvals({ mutabletag, structnormmd }),
+    structallwofieldvals({ mutabletag, structallwomd }),
+    structallimmfieldvals({ mutabletag, structallimmmd }),
+    immstructnormfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(immstructnormfieldvals))
+    ),
+    wostructnormfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(wostructnormfieldvals))
+    ),
+    mutstructnormfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(mutstructnormfieldvals))
+    ),
+    structallwofieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structallwofieldvals))
+    ),
+    structallimmfieldmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structallimmfieldvals))
+    ),
+    structnestedvals(
+      { structtag, constfalse, immint32fieldmd, mutstructnormfieldmd }
+    ),
+    structimmnestedvals(
+      { structtag, constfalse, immint32fieldmd, immstructnormfieldmd }
+    ),
+    structimmnestedvals2(
+      { structtag, constfalse, immint32fieldmd, structallimmfieldmd }
+    ),
+    structwonestedvals(
+      { structtag, constfalse, immint32fieldmd, wostructnormfieldmd }
+    ),
+    structwonestedvals2(
+      { structtag, constfalse, immint32fieldmd, structallwofieldmd }
+    ),
+    structnestedmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structnestedvals))
+    ),
+    structimmnestedmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structimmnestedvals))
+    ),
+    structimmnestedmd2(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structimmnestedvals2))
+    ),
+    structwonestedmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structwonestedvals))
+    ),
+    structwonestedmd2(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structwonestedvals2))
     )
   {
     testmd->addOperand(unitmd);
@@ -303,6 +519,11 @@ public:
     testmd->addOperand(gcptrimmobilemd);
     testmd->addOperand(gcptrtoolongmd);
     testmd->addOperand(gcptrtooshortmd);
+    testmd->addOperand(structnormmd);
+    testmd->addOperand(structstrictmd);
+    testmd->addOperand(structallwomd);
+    testmd->addOperand(structallimmmd);
+    //    testmd->addOperand(structnestedmd);
   }
 
   CPPUNIT_TEST_SUITE(GCTypeUnitTest);
