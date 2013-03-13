@@ -523,7 +523,11 @@ public:
     testmd->addOperand(structstrictmd);
     testmd->addOperand(structallwomd);
     testmd->addOperand(structallimmmd);
-    //    testmd->addOperand(structnestedmd);
+    testmd->addOperand(structnestedmd);
+    testmd->addOperand(structimmnestedmd);
+    testmd->addOperand(structimmnestedmd2);
+    testmd->addOperand(structwonestedmd);
+    testmd->addOperand(structwonestedmd2);
   }
 
   CPPUNIT_TEST_SUITE(GCTypeUnitTest);
