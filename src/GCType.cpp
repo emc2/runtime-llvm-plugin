@@ -74,7 +74,7 @@ const FuncPtrGCType* FuncPtrGCType::get(const llvm::Module& M,
     const llvm::MDNode* paramdesc =
       llvm::cast<llvm::MDNode>(md->getOperand(i));
 
-    paramtys[i - 3] = GCType::get(M, paramdesc, mutability);
+    paramtys[i - 3] = GCType::get(M, paramdesc);
   }
 
   return new FuncPtrGCType(retty, paramtys, operands - 3, vararg, mutability);
@@ -228,7 +228,7 @@ void FuncPtrGCType::accept(GCTypeVisitor& v) const {
   const bool descend = v.begin(this);
 
   if(descend) {
-    resty->accept(v);
+    retty->accept(v);
 
     for(unsigned i = 0; i < nparams; i++)
       paramtys[i]->accept(v);
