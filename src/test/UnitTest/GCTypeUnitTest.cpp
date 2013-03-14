@@ -188,6 +188,14 @@ public:
   llvm::MDNode* const structimmnestedmd2;
   llvm::MDNode* const structwonestedmd;
   llvm::MDNode* const structwonestedmd2;
+  llvm::Value* const funczeroargvals[3];
+  llvm::Value* const functwoargvals[5];
+  llvm::Value* const funcvarargvals[5];
+  llvm::Value* const funcnestedvals[4];
+  llvm::MDNode* const funczeroargmd;
+  llvm::MDNode* const functwoargmd;
+  llvm::MDNode* const funcvarargmd;
+  llvm::MDNode* const funcnestedmd;
 
   GCTypeUnitTest() :
     ctx(), mod(llvm::StringRef("Test"), ctx),
@@ -487,6 +495,22 @@ public:
     ),
     structwonestedmd2(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structwonestedvals2))
+    ),
+    funczeroargvals({ functag, constfalse, unittag }),
+    functwoargvals({ functag, constfalse, unittag, int32md, nativeptrmd }),
+    funcvarargvals({ functag, consttrue, unittag, int32md, nativeptrmd }),
+    funcnestedvals({ functag, constfalse, gcptrstrongmd, structnestedmd }),
+    funczeroargmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(funczeroargvals))
+    ),
+    functwoargmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(functwoargvals))
+    ),
+    funcvarargmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(funcvarargvals))
+    ),
+    funcnestedmd(
+      llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(funcnestedvals))
     )
   {
     testmd->addOperand(unitmd);
@@ -528,6 +552,10 @@ public:
     testmd->addOperand(structimmnestedmd2);
     testmd->addOperand(structwonestedmd);
     testmd->addOperand(structwonestedmd2);
+    testmd->addOperand(funczeroargmd);
+    testmd->addOperand(functwoargmd);
+    testmd->addOperand(funcvarargmd);
+    testmd->addOperand(funcnestedmd);
   }
 
   CPPUNIT_TEST_SUITE(GCTypeUnitTest);
