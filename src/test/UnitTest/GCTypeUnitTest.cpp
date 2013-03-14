@@ -496,9 +496,9 @@ public:
     structwonestedmd2(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(structwonestedvals2))
     ),
-    funczeroargvals({ functag, constfalse, unittag }),
-    functwoargvals({ functag, constfalse, unittag, int32md, nativeptrmd }),
-    funcvarargvals({ functag, consttrue, unittag, int32md, nativeptrmd }),
+    funczeroargvals({ functag, constfalse, unitmd }),
+    functwoargvals({ functag, constfalse, unitmd, int32md, nativeptrmd }),
+    funcvarargvals({ functag, consttrue, unitmd, int32md, nativeptrmd }),
     funcnestedvals({ functag, constfalse, gcptrstrongmd, structnestedmd }),
     funczeroargmd(
       llvm::MDNode::get(ctx, llvm::ArrayRef<llvm::Value*>(funczeroargvals))
@@ -599,6 +599,12 @@ public:
   CPPUNIT_TEST(test_StructGCType_accept_flat_descend);
   CPPUNIT_TEST(test_StructGCType_accept_flat_nodescend);
   CPPUNIT_TEST(test_StructGCType_accept_nested);
+  CPPUNIT_TEST(test_FuncPtrGCType_accept_nodescend);
+  CPPUNIT_TEST(test_FuncPtrGCType_accept_descend_zeroarg);
+  CPPUNIT_TEST(test_FuncPtrGCType_accept_descend_noparams);
+  CPPUNIT_TEST(test_FuncPtrGCType_accept_descend_params);
+  CPPUNIT_TEST(test_FuncPtrGCType_accept_nested_nodescend);
+  CPPUNIT_TEST(test_FuncPtrGCType_accept_nested_descend);
   CPPUNIT_TEST_SUITE_END();
 
   void test_PrimGCType_getUnit();
@@ -641,7 +647,12 @@ public:
   void test_StructGCType_accept_flat_descend();
   void test_StructGCType_accept_flat_nodescend();
   void test_StructGCType_accept_nested();
-
+  void test_FuncPtrGCType_accept_nodescend();
+  void test_FuncPtrGCType_accept_descend_zeroarg();
+  void test_FuncPtrGCType_accept_descend_noparams();
+  void test_FuncPtrGCType_accept_descend_params();
+  void test_FuncPtrGCType_accept_nested_nodescend();
+  void test_FuncPtrGCType_accept_nested_descend();
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(GCTypeUnitTest);
@@ -794,7 +805,7 @@ bool UnitTestVisitor::beginParams(const FuncPtrGCType* const ty) {
 
 void UnitTestVisitor::endParams(const FuncPtrGCType* const ty) {
   if(index < len) {
-    CPPUNIT_ASSERT(script[index].action == END);
+    CPPUNIT_ASSERT(script[index].action == ENDPARAMS);
     CPPUNIT_ASSERT(script[index].ty == ty);
     index++;
   } else {
@@ -1836,7 +1847,6 @@ void GCTypeUnitTest::test_NativePtrGCType_accept() {
 
   type->accept(visitor);
   visitor.finish();
-
 }
 
 void GCTypeUnitTest::test_StructGCType_accept_flat_nodescend() {
@@ -1850,7 +1860,6 @@ void GCTypeUnitTest::test_StructGCType_accept_flat_nodescend() {
 
   type->accept(visitor);
   visitor.finish();
-
 }
 
 void GCTypeUnitTest::test_StructGCType_accept_flat_descend() {
@@ -1871,7 +1880,6 @@ void GCTypeUnitTest::test_StructGCType_accept_flat_descend() {
 
   type->accept(visitor);
   visitor.finish();
-
 }
 
 void GCTypeUnitTest::test_StructGCType_accept_nested() {
@@ -1900,5 +1908,127 @@ void GCTypeUnitTest::test_StructGCType_accept_nested() {
 
   type->accept(visitor);
   visitor.finish();
+}
 
+void GCTypeUnitTest::test_FuncPtrGCType_accept_nodescend() {
+  const FuncPtrGCType* const type =
+    FuncPtrGCType::get(mod, funczeroargmd, GCType::MutableID);
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, false),
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)    
+  };
+  UnitTestVisitor visitor(script, 2);
+
+  type->accept(visitor);
+  visitor.finish();
+}
+
+void GCTypeUnitTest::test_FuncPtrGCType_accept_descend_zeroarg() {
+  const FuncPtrGCType* const type =
+    FuncPtrGCType::get(mod, funczeroargmd, GCType::MutableID);
+  const GCType* const retty = type->returnTy();
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(retty),
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGINPARAMS, true),
+    UnitTestVisitor::Action(type, UnitTestVisitor::ENDPARAMS),
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)
+  };
+  UnitTestVisitor visitor(script, 5);
+
+  type->accept(visitor);
+  visitor.finish();
+}
+
+void GCTypeUnitTest::test_FuncPtrGCType_accept_descend_noparams() {
+  const FuncPtrGCType* const type =
+    FuncPtrGCType::get(mod, functwoargmd, GCType::MutableID);
+  const GCType* const retty = type->returnTy();
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(retty),
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGINPARAMS, false),
+    UnitTestVisitor::Action(type, UnitTestVisitor::ENDPARAMS),
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)
+  };
+  UnitTestVisitor visitor(script, 5);
+
+  type->accept(visitor);
+  visitor.finish();
+}
+
+void GCTypeUnitTest::test_FuncPtrGCType_accept_descend_params() {
+  const FuncPtrGCType* const type =
+    FuncPtrGCType::get(mod, functwoargmd, GCType::MutableID);
+  const GCType* const retty = type->returnTy();
+  const GCType* const param0 = type->paramTy(0);
+  const GCType* const param1 = type->paramTy(1);
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(retty),
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGINPARAMS, true),
+    UnitTestVisitor::Action(param0),
+    UnitTestVisitor::Action(param1),
+    UnitTestVisitor::Action(type, UnitTestVisitor::ENDPARAMS),
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)
+  };
+  UnitTestVisitor visitor(script, 7);
+
+  type->accept(visitor);
+  visitor.finish();
+}
+
+void GCTypeUnitTest::test_FuncPtrGCType_accept_nested_nodescend() {
+  const FuncPtrGCType* const type =
+    FuncPtrGCType::get(mod, funcnestedmd, GCType::MutableID);
+  const GCType* const retty = type->returnTy();
+  const GCType* const param = type->paramTy(0);
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(retty),
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGINPARAMS, true),
+    UnitTestVisitor::Action(param, UnitTestVisitor::BEGIN, false),
+    UnitTestVisitor::Action(param, UnitTestVisitor::END),
+    UnitTestVisitor::Action(type, UnitTestVisitor::ENDPARAMS),
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)
+  };
+  UnitTestVisitor visitor(script, 7);
+
+  type->accept(visitor);
+  visitor.finish();
+}
+
+void GCTypeUnitTest::test_FuncPtrGCType_accept_nested_descend() {
+  const FuncPtrGCType* const type =
+    FuncPtrGCType::get(mod, funcnestedmd, GCType::MutableID);
+  const GCType* const retty = type->returnTy();
+  const StructGCType* const param = StructGCType::narrow(type->paramTy(0));
+  const GCType* const field0 = param->fieldTy(0);
+  const StructGCType* const field1 = StructGCType::narrow(param->fieldTy(1));
+  const GCType* const innerfield0 = field1->fieldTy(0);
+  const GCType* const innerfield1 = field1->fieldTy(1);
+  const ArrayGCType* const innerfield2 =
+    ArrayGCType::narrow(field1->fieldTy(2));
+  const GCType* const elem = innerfield2->getElemTy();
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(retty),
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGINPARAMS, true),
+    UnitTestVisitor::Action(param, UnitTestVisitor::BEGIN, false),
+    UnitTestVisitor::Action(field0),
+    UnitTestVisitor::Action(field1, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(innerfield0),
+    UnitTestVisitor::Action(innerfield1),
+    UnitTestVisitor::Action(innerfield2, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(elem),
+    UnitTestVisitor::Action(innerfield2, UnitTestVisitor::END),    
+    UnitTestVisitor::Action(field1, UnitTestVisitor::END),
+    UnitTestVisitor::Action(param, UnitTestVisitor::END),
+    UnitTestVisitor::Action(type, UnitTestVisitor::ENDPARAMS),
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)
+  };
+  UnitTestVisitor visitor(script, 15);
+
+  type->accept(visitor);
+  visitor.finish();
 }
