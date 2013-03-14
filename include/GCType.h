@@ -561,7 +561,6 @@ public:
     } else
       return NULL;
   }
-
 };
 
 /*!
@@ -571,17 +570,17 @@ public:
  */
 class FuncPtrGCType : public GCType {
 private:
-  const GCType* const resty;
+  const GCType* const retty;
   const GCType* const * const paramtys;
   const unsigned nparams;
   const bool vararg;
 
-  FuncPtrGCType(const GCType* resty,
+  FuncPtrGCType(const GCType* retty,
 		const GCType* const * paramtys,
 		unsigned nparams,
 		bool vararg = false,
 		unsigned mutability = MutableID)
-    : GCType(FuncPtrTypeID, mutability), resty(resty),
+    : GCType(FuncPtrTypeID, mutability), retty(retty),
       paramtys(paramtys), nparams(nparams), vararg(vararg) {}
 public:
 
@@ -595,7 +594,8 @@ public:
 
   inline bool isVararg() const { return vararg; }
   inline unsigned numParams() const { return nparams; }
-  inline const GCType* resultTy() const { return resty; }
+  inline const GCType* returnTy() const { return retty; }
+  inline const GCType* paramTy(unsigned idx) const { return paramtys[idx]; }
 
   /*!
    * This function runs a visitor on this type. The parent argument will
@@ -611,7 +611,7 @@ public:
     const bool descend = v.begin(this, ctx, parent);
 
     if(descend) {
-      resty->accept<T>(v, ctx);
+      retty->accept<T>(v, ctx);
 
       const bool params = v.beginParams(this, ctx);
 
@@ -640,6 +640,20 @@ public:
   static const FuncPtrGCType* get(const llvm::Module& M,
 				  const llvm::MDNode* md,
 				  unsigned mutability = MutableID);
+
+  static inline FuncPtrGCType* narrow(GCType* const ty) {
+    if(GCType::FuncPtrTypeID == ty->getTypeID()) {
+      return static_cast<FuncPtrGCType*>(ty);
+    } else
+      return NULL;
+  }
+
+  static inline const FuncPtrGCType* narrow(const GCType* const ty) {
+    if(GCType::FuncPtrTypeID == ty->getTypeID()) {
+      return static_cast<const FuncPtrGCType*>(ty);
+    } else
+      return NULL;
+  }
 };
 
 template <typename T> void GCType::accept(GCTypeContextVisitor<T>& v,
