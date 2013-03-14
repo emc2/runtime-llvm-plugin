@@ -512,6 +512,7 @@ public:
 
   inline bool isPacked() const { return packed; }
   inline unsigned numFields() const { return nfields; }
+  inline const GCType* fieldTy(unsigned idx) const { return fieldtys[idx]; }
 
   /*!
    * This function runs a visitor on this type. The parent argument will
@@ -546,6 +547,21 @@ public:
   static const StructGCType* get(const llvm::Module& M,
 				 const llvm::MDNode* md,
 				 unsigned mutability = MutableID);
+
+  static inline StructGCType* narrow(GCType* const ty) {
+    if(GCType::StructTypeID == ty->getTypeID()) {
+      return static_cast<StructGCType*>(ty);
+    } else
+      return NULL;
+  }
+
+  static inline const StructGCType* narrow(const GCType* const ty) {
+    if(GCType::StructTypeID == ty->getTypeID()) {
+      return static_cast<const StructGCType*>(ty);
+    } else
+      return NULL;
+  }
+
 };
 
 /*!

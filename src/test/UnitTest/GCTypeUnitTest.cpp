@@ -596,6 +596,9 @@ public:
   CPPUNIT_TEST(test_GCType_get_GCPtr_phantom);
   CPPUNIT_TEST(test_GCType_get_GCPtr_immobile);
   CPPUNIT_TEST(test_GCPtrGCType_accept);
+  CPPUNIT_TEST(test_StructGCType_accept_flat_descend);
+  CPPUNIT_TEST(test_StructGCType_accept_flat_nodescend);
+  CPPUNIT_TEST(test_StructGCType_accept_nested);
   CPPUNIT_TEST_SUITE_END();
 
   void test_PrimGCType_getUnit();
@@ -635,6 +638,9 @@ public:
   void test_GCType_get_GCPtr_phantom();
   void test_GCType_get_GCPtr_immobile();
   void test_GCPtrGCType_accept();
+  void test_StructGCType_accept_flat_descend();
+  void test_StructGCType_accept_flat_nodescend();
+  void test_StructGCType_accept_nested();
 
 };
 
@@ -1827,6 +1833,70 @@ void GCTypeUnitTest::test_NativePtrGCType_accept() {
     NativePtrGCType::get(mod, nativeptrmd, GCType::ImmutableID);
   UnitTestVisitor::Action script[] = { UnitTestVisitor::Action(type) };
   UnitTestVisitor visitor(script, 1);
+
+  type->accept(visitor);
+  visitor.finish();
+
+}
+
+void GCTypeUnitTest::test_StructGCType_accept_flat_nodescend() {
+  const StructGCType* const type =
+    StructGCType::get(mod, structnormmd, GCType::MutableID);
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, false),
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)    
+  };
+  UnitTestVisitor visitor(script, 2);
+
+  type->accept(visitor);
+  visitor.finish();
+
+}
+
+void GCTypeUnitTest::test_StructGCType_accept_flat_descend() {
+  const StructGCType* const type =
+    StructGCType::get(mod, structnormmd, GCType::MutableID);
+  const GCType* const field0 = type->fieldTy(0);
+  const GCType* const field1 = type->fieldTy(1);
+  const GCType* const field2 = type->fieldTy(2);
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(field0),
+    UnitTestVisitor::Action(field1),
+    UnitTestVisitor::Action(field2, UnitTestVisitor::BEGIN, false),
+    UnitTestVisitor::Action(field2, UnitTestVisitor::END),    
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)
+  };
+  UnitTestVisitor visitor(script, 6);
+
+  type->accept(visitor);
+  visitor.finish();
+
+}
+
+void GCTypeUnitTest::test_StructGCType_accept_nested() {
+  const StructGCType* const type =
+    StructGCType::get(mod, structnestedmd, GCType::MutableID);
+  const GCType* const field0 = type->fieldTy(0);
+  const StructGCType* const field1 = StructGCType::narrow(type->fieldTy(1));
+  const GCType* const innerfield0 = field1->fieldTy(0);
+  const GCType* const innerfield1 = field1->fieldTy(1);
+  const ArrayGCType* const innerfield2 =
+    ArrayGCType::narrow(field1->fieldTy(2));
+  const GCType* const elem = innerfield2->getElemTy();
+  UnitTestVisitor::Action script[] = {
+    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(field0),
+    UnitTestVisitor::Action(field1, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(innerfield0),
+    UnitTestVisitor::Action(innerfield1),
+    UnitTestVisitor::Action(innerfield2, UnitTestVisitor::BEGIN, true),
+    UnitTestVisitor::Action(elem),
+    UnitTestVisitor::Action(innerfield2, UnitTestVisitor::END),    
+    UnitTestVisitor::Action(field1, UnitTestVisitor::END),
+    UnitTestVisitor::Action(type, UnitTestVisitor::END)
+  };
+  UnitTestVisitor visitor(script, 10);
 
   type->accept(visitor);
   visitor.finish();
