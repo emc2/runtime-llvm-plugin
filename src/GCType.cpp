@@ -20,11 +20,11 @@
 #define __STDC_CONSTANT_MACROS 1
 #include "GCType.h"
 #include "metadata.h"
-#include "llvm/Constants.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/LLVMContext.h"
-#include "llvm/Metadata.h"
-#include "llvm/Module.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/IR/Module.h"
 
 static llvm::Type* getType(const llvm::Module& M,
 			   const llvm::MDString* desc) {

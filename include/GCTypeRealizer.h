@@ -22,7 +22,7 @@
 #include "GCTypeVisitors.h"
 #include "GCParams.h"
 #include "TypeBuilder.h"
-#include "llvm/Module.h"
+#include "llvm/IR/Module.h"
 
 /*!
  * This is a subclass of GCTypeContextVisitor which works in

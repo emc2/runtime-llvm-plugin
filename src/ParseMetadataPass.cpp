@@ -20,8 +20,8 @@
 #define __STDC_CONSTANT_MACROS 1
 
 #include "llvm/Pass.h"
-#include "llvm/Module.h"
-#include "llvm/Constants.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Constants.h"
 #include "llvm/ADT/StringMap.h"
 #include "GCType.h"
 #include "GCTypeVisitors.h"

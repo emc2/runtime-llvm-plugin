@@ -19,8 +19,8 @@
 #define _TYPE_BUILDER_H_
 
 #include "GCType.h"
-#include "llvm/Type.h"
-#include "llvm/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Module.h"
 
 /*!
  * This class implements a simple interface for building compound LLVM

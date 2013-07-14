@@ -21,7 +21,7 @@
 #include <string.h>
 #include "TypeBuilder.h"
 #include "GCTypeRealizer.h"
-#include "llvm/DerivedTypes.h"
+#include "llvm/IR/DerivedTypes.h"
 
 /*
 TypeBuilder* GCTypeRealizer::initial(const GCType* ty) {

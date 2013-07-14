@@ -19,8 +19,8 @@
 #define __STDC_LIMIT_MACROS 1
 #define __STDC_CONSTANT_MACROS 1
 #include "TypeBuilder.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/Module.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Module.h"
 
 StructTypeBuilder::StructTypeBuilder(unsigned nfields,
 				     const llvm::StringRef tyname,

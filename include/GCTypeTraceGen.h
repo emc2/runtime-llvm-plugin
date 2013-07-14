@@ -19,9 +19,9 @@
 #define _GC_TYPE_TRACE_GEN_H_
 
 #include "GCTypeVisitors.h"
-#include "llvm/Module.h"
-#include "llvm/Value.h"
-#include "llvm/Instructions.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Value.h"
+#include "llvm/IR/Instructions.h"
 
 /* These visitors generate code for garbage collection tracing,
  * copying, and synchronization.

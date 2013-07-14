@@ -18,9 +18,9 @@
 #ifndef _GC_TYPE_H_
 #define _GC_TYPE_H_
 
-#include "llvm/Type.h"
-#include "llvm/Metadata.h"
-#include "llvm/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/IR/Module.h"
 #include "GCTypeVisitors.h"
 
 /*!

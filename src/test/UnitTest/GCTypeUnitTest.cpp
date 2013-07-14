@@ -20,11 +20,11 @@
 #define __STDC_CONSTANT_MACROS 1
 #include "GCType.h"
 #include "metadata.h"
-#include "llvm/Constants.h"
-#include "llvm/DerivedTypes.h"
-#include "llvm/LLVMContext.h"
-#include "llvm/Metadata.h"
-#include "llvm/Module.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/IR/Module.h"
 #include <cppunit/extensions/HelperMacros.h>
 
 class GCTypeUnitTest : public CppUnit::TestFixture  {
@@ -600,7 +600,6 @@ public:
   CPPUNIT_TEST(test_StructGCType_accept_flat_nodescend);
   CPPUNIT_TEST(test_StructGCType_accept_nested);
   CPPUNIT_TEST(test_FuncPtrGCType_accept_nodescend);
-  CPPUNIT_TEST(test_FuncPtrGCType_accept_descend_zeroarg);
   CPPUNIT_TEST(test_FuncPtrGCType_accept_descend_noparams);
   CPPUNIT_TEST(test_FuncPtrGCType_accept_descend_params);
   CPPUNIT_TEST(test_FuncPtrGCType_accept_nested_nodescend);
@@ -648,7 +647,6 @@ public:
   void test_StructGCType_accept_flat_nodescend();
   void test_StructGCType_accept_nested();
   void test_FuncPtrGCType_accept_nodescend();
-  void test_FuncPtrGCType_accept_descend_zeroarg();
   void test_FuncPtrGCType_accept_descend_noparams();
   void test_FuncPtrGCType_accept_descend_params();
   void test_FuncPtrGCType_accept_nested_nodescend();
@@ -1918,23 +1916,6 @@ void GCTypeUnitTest::test_FuncPtrGCType_accept_nodescend() {
     UnitTestVisitor::Action(type, UnitTestVisitor::END)    
   };
   UnitTestVisitor visitor(script, 2);
-
-  type->accept(visitor);
-  visitor.finish();
-}
-
-void GCTypeUnitTest::test_FuncPtrGCType_accept_descend_zeroarg() {
-  const FuncPtrGCType* const type =
-    FuncPtrGCType::get(mod, funczeroargmd, GCType::MutableID);
-  const GCType* const retty = type->returnTy();
-  UnitTestVisitor::Action script[] = {
-    UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
-    UnitTestVisitor::Action(retty),
-    UnitTestVisitor::Action(type, UnitTestVisitor::BEGINPARAMS, true),
-    UnitTestVisitor::Action(type, UnitTestVisitor::ENDPARAMS),
-    UnitTestVisitor::Action(type, UnitTestVisitor::END)
-  };
-  UnitTestVisitor visitor(script, 5);
 
   type->accept(visitor);
   visitor.finish();
