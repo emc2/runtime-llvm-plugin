@@ -25,6 +25,7 @@
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
+#include <llvm/Support/raw_os_ostream.h>
 
 static llvm::Type* getType(const llvm::Module& M,
 			   const llvm::MDString* desc) {
@@ -56,6 +57,25 @@ const GCType* GCType::get(const llvm::Module& M,
   case GC_MD_TYPE_UNIT: return PrimGCType::getUnit();
   }
 
+}
+
+bool GCType::operator==(const GCType& other) const {
+  if(getTypeID() == other.getTypeID())
+    switch(other.getTypeID()) {
+    case FuncPtrTypeID:
+      return *FuncPtrGCType::narrow(this) == (FuncPtrGCType&)other;
+    case GCPtrTypeID:
+      return *GCPtrGCType::narrow(this) == (GCPtrGCType&)other;
+    case ArrayTypeID:
+      return *ArrayGCType::narrow(this) == (ArrayGCType&)other;
+    case StructTypeID:
+      return *StructGCType::narrow(this) == (StructGCType&)other;
+    case PrimTypeID:
+      return *PrimGCType::narrow(this) == (PrimGCType&)other;
+    case NativePtrTypeID:
+      return *NativePtrGCType::narrow(this) == (NativePtrGCType&)other;
+    }
+  return false;
 }
 
 // Format: GC_MD_FUNC vararg retty paramty*
@@ -230,8 +250,13 @@ void FuncPtrGCType::accept(GCTypeVisitor& v) const {
   if(descend) {
     retty->accept(v);
 
-    for(unsigned i = 0; i < nparams; i++)
-      paramtys[i]->accept(v);
+    const bool params = v.beginParams(this);
+
+    if(params)
+      for(unsigned i = 0; i < nparams; i++)
+        paramtys[i]->accept(v);
+
+    v.endParams(this);
   }
 
   v.end(this);
@@ -247,6 +272,14 @@ void GCPtrGCType::accept(GCTypeVisitor& v) const {
 
 void PrimGCType::accept(GCTypeVisitor& v) const {
   v.visit(this);
+}
+
+std::ostream& GCType::print(std::ostream& stream) const {
+  llvm::raw_os_ostream rstream(stream);
+  GCTypePrintVisitor visitor(rstream);
+  visitor.print(this);
+
+  return stream;
 }
 
 const char* const GCType::mutabilityStrs[] =

@@ -361,6 +361,15 @@ public:
    * \param ty The type to print.
    */
   void print(const GCType* ty);
+
+  /*!
+   * This function prints the given type by having this visitor visit
+   * it.
+   *
+   * \brief Print the given type.
+   * \param ty The type to print.
+   */
+  void print(const GCType& ty);
 };
 
 #endif

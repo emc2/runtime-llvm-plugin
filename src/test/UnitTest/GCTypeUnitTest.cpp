@@ -26,6 +26,7 @@
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
 #include <cppunit/extensions/HelperMacros.h>
+#include <iostream>
 
 class GCTypeUnitTest : public CppUnit::TestFixture  {
 public:
@@ -659,7 +660,6 @@ CPPUNIT_TEST_SUITE_REGISTRATION(GCTypeUnitTest);
 // describing the visitation pattern, and checks it along the way.
 class UnitTestVisitor : public GCTypeVisitor {
 public:
-
   enum { VISIT, BEGIN, END, BEGINPARAMS, ENDPARAMS };
 
   struct Action {
@@ -696,9 +696,28 @@ public:
   virtual void endParams(const FuncPtrGCType* ty);
 };
 
+std::ostream& operator<<(std::ostream& stream,
+                         const UnitTestVisitor::Action& act) {
+  switch(act.action) {
+  default: return stream;
+  case UnitTestVisitor::BEGIN: return stream << "BEGIN " << *act.ty;
+  case UnitTestVisitor::VISIT: return stream << "VISIT " << *act.ty;
+  case UnitTestVisitor::END: return stream << "END " << *act.ty;
+  case UnitTestVisitor::BEGINPARAMS: return stream << "BEGINPARAM " << *act.ty;
+  case UnitTestVisitor::ENDPARAMS: return stream << "ENDPARAM " << *act.ty;
+  }
+}
+
 // Unit test visitor implementation
 bool UnitTestVisitor::begin(const StructGCType* const ty) {
+  std::cout << "Actual: " <<
+    UnitTestVisitor::Action(ty, UnitTestVisitor::BEGIN) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == BEGIN);
     CPPUNIT_ASSERT(script[index].ty == ty);
     return script[index++].descend;
@@ -709,7 +728,14 @@ bool UnitTestVisitor::begin(const StructGCType* const ty) {
 }
 
 bool UnitTestVisitor::begin(const FuncPtrGCType* const ty) {
+  std::cout << "Actual: " <<
+    UnitTestVisitor::Action(ty, UnitTestVisitor::BEGIN) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == BEGIN);
     CPPUNIT_ASSERT(script[index].ty == ty);
     return script[index++].descend;
@@ -720,7 +746,14 @@ bool UnitTestVisitor::begin(const FuncPtrGCType* const ty) {
 }
 
 bool UnitTestVisitor::begin(const ArrayGCType* const ty) {
+  std::cout << "Actual: " <<
+    UnitTestVisitor::Action(ty, UnitTestVisitor::BEGIN) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == BEGIN);
     CPPUNIT_ASSERT(script[index].ty == ty);
     return script[index++].descend;
@@ -731,7 +764,14 @@ bool UnitTestVisitor::begin(const ArrayGCType* const ty) {
 }
 
 void UnitTestVisitor::end(const StructGCType* const ty) {
+  std::cout << "Actual: " <<
+    UnitTestVisitor::Action(ty, UnitTestVisitor::END) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == END);
     CPPUNIT_ASSERT(script[index].ty == ty);
     index++;
@@ -741,7 +781,14 @@ void UnitTestVisitor::end(const StructGCType* const ty) {
 }
 
 void UnitTestVisitor::end(const FuncPtrGCType* const ty) {
+  std::cout << "Actual: " <<
+    UnitTestVisitor::Action(ty, UnitTestVisitor::END) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == END);
     CPPUNIT_ASSERT(script[index].ty == ty);
     index++;
@@ -751,7 +798,14 @@ void UnitTestVisitor::end(const FuncPtrGCType* const ty) {
 }
 
 void UnitTestVisitor::end(const ArrayGCType* const ty) {
+  std::cout << "Actual: " <<
+    UnitTestVisitor::Action(ty, UnitTestVisitor::END) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == END);
     CPPUNIT_ASSERT(script[index].ty == ty);
     index++;
@@ -761,7 +815,13 @@ void UnitTestVisitor::end(const ArrayGCType* const ty) {
 }
 
 void UnitTestVisitor::visit(const NativePtrGCType* const ty) {
+  std::cout << "Actual: " << UnitTestVisitor::Action(ty) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == VISIT);
     CPPUNIT_ASSERT(script[index].ty == ty);
     index++;
@@ -771,7 +831,13 @@ void UnitTestVisitor::visit(const NativePtrGCType* const ty) {
 }
 
 void UnitTestVisitor::visit(const GCPtrGCType* const ty) {
+  std::cout << "Actual: " << UnitTestVisitor::Action(ty) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == VISIT);
     CPPUNIT_ASSERT(script[index].ty == ty);
     index++;
@@ -781,7 +847,13 @@ void UnitTestVisitor::visit(const GCPtrGCType* const ty) {
 }
 
 void UnitTestVisitor::visit(const PrimGCType* const ty) {
+  std::cout << "Actual: " << UnitTestVisitor::Action(ty) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == VISIT);
     CPPUNIT_ASSERT(script[index].ty == ty);
     index++;
@@ -791,7 +863,14 @@ void UnitTestVisitor::visit(const PrimGCType* const ty) {
 }
 
 bool UnitTestVisitor::beginParams(const FuncPtrGCType* const ty) {
+  std::cout << "Actual: " <<
+    UnitTestVisitor::Action(ty, UnitTestVisitor::BEGINPARAMS) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == BEGINPARAMS);
     CPPUNIT_ASSERT(script[index].ty == ty);
     return script[index++].descend;
@@ -802,7 +881,14 @@ bool UnitTestVisitor::beginParams(const FuncPtrGCType* const ty) {
 }
 
 void UnitTestVisitor::endParams(const FuncPtrGCType* const ty) {
+  std::cout << "Actual: " <<
+    UnitTestVisitor::Action(ty, UnitTestVisitor::ENDPARAMS) << "\n";
   if(index < len) {
+    std::cout << "Expected " << script[index] << "\n";
+    if(script[index].ty == ty)
+      std::cout << "Ok\n";
+    else
+      std::cout << "Error at index " << index << "!\n";
     CPPUNIT_ASSERT(script[index].action == ENDPARAMS);
     CPPUNIT_ASSERT(script[index].ty == ty);
     index++;
@@ -1923,7 +2009,7 @@ void GCTypeUnitTest::test_FuncPtrGCType_accept_nodescend() {
 
 void GCTypeUnitTest::test_FuncPtrGCType_accept_descend_noparams() {
   const FuncPtrGCType* const type =
-    FuncPtrGCType::get(mod, functwoargmd, GCType::MutableID);
+    FuncPtrGCType::get(mod, funczeroargmd, GCType::MutableID);
   const GCType* const retty = type->returnTy();
   UnitTestVisitor::Action script[] = {
     UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
@@ -1995,7 +2081,7 @@ void GCTypeUnitTest::test_FuncPtrGCType_accept_nested_descend() {
     UnitTestVisitor::Action(type, UnitTestVisitor::BEGIN, true),
     UnitTestVisitor::Action(retty),
     UnitTestVisitor::Action(type, UnitTestVisitor::BEGINPARAMS, true),
-    UnitTestVisitor::Action(param, UnitTestVisitor::BEGIN, false),
+    UnitTestVisitor::Action(param, UnitTestVisitor::BEGIN, true),
     UnitTestVisitor::Action(field0),
     UnitTestVisitor::Action(field1, UnitTestVisitor::BEGIN, true),
     UnitTestVisitor::Action(innerfield0),

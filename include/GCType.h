@@ -22,6 +22,7 @@
 #include "llvm/IR/Metadata.h"
 #include "llvm/IR/Module.h"
 #include "GCTypeVisitors.h"
+#include <iostream>
 
 /*!
  * This is the base type of a shadow hierarchy which represents the
@@ -32,7 +33,7 @@
  * \brief A type representing the extra GC info in some types.
  */
 class GCType {
-private:
+protected:
   unsigned flags;
 
   inline void setTypeID(unsigned typeID) {
@@ -43,7 +44,6 @@ private:
     flags = (flags & ~0x3) | (mutability & 0x3);
   }
 
-protected:
   GCType(unsigned typeID,
 	 unsigned mutability = MutableID) : flags(0) {
     setTypeID(typeID);
@@ -68,6 +68,8 @@ public:
   };
 
   static const char* const mutabilityStrs[];
+
+  std::ostream& print(std::ostream&) const;
 
   /*!
    * This function returns the mutability of the entire type.
@@ -123,7 +125,17 @@ public:
    */
   template <typename T> void accept(GCTypeContextVisitor<T>& v,
 				    T& ctx) const;
+  bool operator==(const GCType& other) const;
+
+  inline bool operator!=(const GCType& other) const {
+    return !(*this == other);
+  }
+
 };
+
+inline std::ostream& operator<<(std::ostream& stream, const GCType& gcty) {
+  return gcty.print(stream);
+}
 
 /*!
  * This class represents a primitive type in a GC object.
@@ -140,6 +152,10 @@ private:
 
   static const PrimGCType* unitGCTy;
 public:
+
+  inline bool operator==(const PrimGCType& other) const {
+    return TypeRef == other.TypeRef && flags == other.flags;
+  }
 
   inline llvm::Type* getLLVMType() const { return TypeRef; }
 
@@ -245,6 +261,11 @@ private:
 	      unsigned mutability = MutableID)
     : GCType(ArrayTypeID, mutability), nelems(nelems), Elem(Elem) {}
 public:
+  inline bool operator==(const ArrayGCType& other) const {
+    return nelems == other.nelems && *Elem == *other.Elem &&
+      flags == other.flags;
+  }
+
   /*!
    * This function runs a visitor on this type.
    *
@@ -333,6 +354,9 @@ private:
     : PtrGCType(NativePtrTypeID, Inner, mutability) {}
 
 public:
+  inline bool operator==(const NativePtrGCType& other) const {
+    return Inner == other.Inner && flags == other.flags;
+  }
 
   /*!
    * This function runs a visitor on this type.
@@ -419,6 +443,11 @@ public:
 
   static const char* const ptrClassStrs[];
 
+  inline bool operator==(const GCPtrGCType& other) const {
+    return Inner == other.Inner && flags == other.flags &&
+      ptrclass == other.ptrclass && mobility == other.mobility;
+  }
+
   inline unsigned getPtrClass() const { return ptrclass; }
 
   inline const char* getPtrClassName() const {
@@ -501,6 +530,15 @@ private:
     : GCType(StructTypeID, mutability), fieldtys(fieldtys),
       nfields(nfields), packed(packed) {}
 public:
+  inline bool operator==(const StructGCType& other) const {
+    if(packed == other.packed && nfields == other.nfields) {
+      for(unsigned i = 0; i < nfields; i++)
+        if(*fieldtys[i] != *other.fieldtys[i])
+          return false;
+      return true;
+    } else
+      return false;
+  }
 
   /*!
    * This function runs a visitor on this type.
@@ -584,6 +622,17 @@ private:
       paramtys(paramtys), nparams(nparams), vararg(vararg) {}
 public:
 
+  inline bool operator==(const FuncPtrGCType& other) const {
+    if(vararg == other.vararg && nparams == other.nparams &&
+       *retty == *other.retty) {
+      for(unsigned i = 0; i < nparams; i++)
+        if(*paramtys[i] != *other.paramtys[i])
+          return false;
+      return true;
+    } else
+      return false;
+  }
+
   /*!
    * This function runs a visitor on this type.
    *
@@ -615,16 +664,14 @@ public:
 
       const bool params = v.beginParams(this, ctx);
 
-      if(params) {
+      if(params)
 	for(unsigned i = 0; i < nparams; i++)
 	  paramtys[i]->accept<T>(v, ctx);
 
-	v.endParams(this, ctx);
-      }
-
-      v.end(this, ctx, parent);
+      v.endParams(this, ctx);
     }
 
+    v.end(this, ctx, parent);
   }
 
   /*!

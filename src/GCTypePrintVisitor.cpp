@@ -29,6 +29,7 @@ bool GCTypePrintVisitor::begin(const StructGCType* const ty,
     stream << ", ";
 
   stream << ty->mutabilityName() << " " << "struct { ";
+  stream.flush();
   return true;
 }
 
@@ -40,6 +41,7 @@ bool GCTypePrintVisitor::begin(const ArrayGCType* const ty,
     stream << ", ";
 
   stream << ty->mutabilityName() << " " << "[ ";
+  stream.flush();
   return true;
 }
 
@@ -51,12 +53,14 @@ bool GCTypePrintVisitor::begin(const FuncPtrGCType* const ty,
     stream << ", ";
 
   stream << ty->mutabilityName() << " ";
+  stream.flush();
   return true;
 }
 
 void GCTypePrintVisitor::end(const StructGCType*, bool& first, bool&) {
   first = false;
   stream << " }";
+  stream.flush();
 }
 
 void GCTypePrintVisitor::end(const ArrayGCType* const ty, bool& first, bool&) {
@@ -65,6 +69,7 @@ void GCTypePrintVisitor::end(const ArrayGCType* const ty, bool& first, bool&) {
     stream << " x " << ty->getNumElems();
 
   stream << " ]";
+  stream.flush();
 }
 
 void GCTypePrintVisitor::end(const FuncPtrGCType*, bool& first, bool&) {
@@ -82,8 +87,9 @@ void GCTypePrintVisitor::visit(const PrimGCType* const ty,
     stream << "unit";
   else {
     stream << ty->mutabilityName() << " ";
-    ty->getLLVMType()->dump();
+    ty->getLLVMType()->print(stream);
   }
+  stream.flush();
 }
 
 void GCTypePrintVisitor::visit(const NativePtrGCType* const ty,
@@ -93,8 +99,9 @@ void GCTypePrintVisitor::visit(const NativePtrGCType* const ty,
 
   first = false;
   stream << ty->mutabilityName() << " ";
-  ty->getElemTy()->dump();
+  ty->getElemTy()->print(stream);
   stream << "*";
+  stream.flush();
 }
 
 void GCTypePrintVisitor::visit(const GCPtrGCType* const ty,
@@ -104,21 +111,29 @@ void GCTypePrintVisitor::visit(const GCPtrGCType* const ty,
 
   first = false;
   stream  << ty->mutabilityName() << " ";
-  ty->getElemTy()->dump();
+  ty->getElemTy()->print(stream);
   stream << " " << ty->getMobilityName() << " gc " <<
     ty->getPtrClassName() << "*";
+  stream.flush();
 }
 
 bool GCTypePrintVisitor::beginParams(const FuncPtrGCType*, bool&) {
   stream << "(";
+  stream.flush();
   return true;
 }
 
 void GCTypePrintVisitor::endParams(const FuncPtrGCType*, bool&) {
   stream << ")";
+  stream.flush();
 }
 
 void GCTypePrintVisitor::print(const GCType* ty) {
   bool first = true;
   ty->accept(*this, first);
+}
+
+void GCTypePrintVisitor::print(const GCType& ty) {
+  bool first = true;
+  ty.accept(*this, first);
 }
