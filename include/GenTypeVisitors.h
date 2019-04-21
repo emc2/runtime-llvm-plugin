@@ -15,26 +15,26 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301 USA
  */
-#ifndef _GC_TYPE_VISITOR_H_
-#define _GC_TYPE_VISITOR_H_
+#ifndef _GEN_TYPE_VISITOR_H_
+#define _GEN_TYPE_VISITOR_H_
 
 #include <llvm/Support/raw_ostream.h>
 
-class GCType;
-class PrimGCType;
-class ArrayGCType;
-class NativePtrGCType;
-class GCPtrGCType;
-class FuncPtrGCType;
-class StructGCType;
+class GenType;
+class PrimGenType;
+class ArrayGenType;
+class NativePtrGenType;
+class GCPtrGenType;
+class FuncPtrGenType;
+class StructGenType;
 
 /*!
- * This implements a visitor-like pattern for GC types.  It serves as
- * the basis for implementing all the other visitors.
+ * This implements a visitor-like pattern for generated types.  It
+ * serves as the basis for implementing all the other visitors.
  *
- * \brief Basic visitor class for GC types.
+ * \brief Basic visitor class for generated types.
  */
-class GCTypeVisitor {
+class GenTypeVisitor {
 public:
 
   /*!
@@ -49,7 +49,7 @@ public:
    * \param ty The type being visited.
    * \return Whether or not to visit the fields.
    */
-  virtual bool begin(const StructGCType* ty);
+  virtual bool begin(const StructGenType* ty);
 
   /*!
    * This is called when beginning to visit a function pointer.  If
@@ -64,7 +64,7 @@ public:
    * \param ty The type being visited.
    * \return Whether or not to visit the return type and parameters.
    */
-  virtual bool begin(const FuncPtrGCType* ty);
+  virtual bool begin(const FuncPtrGenType* ty);
 
   /*!
    * This is called when beginning to visit an array.  If the function
@@ -75,7 +75,7 @@ public:
    * \param ty The type being visited.
    * \return Whether or not to visit the return type and parameters.
    */
-  virtual bool begin(const ArrayGCType* ty);
+  virtual bool begin(const ArrayGenType* ty);
 
   /*!
    * This is called after visiting all the fields in a structure.
@@ -84,7 +84,7 @@ public:
    * \brief End a structure type.
    * \param ty The type being visited.
    */
-  virtual void end(const StructGCType* ty);
+  virtual void end(const StructGenType* ty);
 
   /*!
    * This is called after visiting the return type and parameters of a
@@ -94,7 +94,7 @@ public:
    * \brief End a function pointer type.
    * \param ty The type being visited.
    */
-  virtual void end(const FuncPtrGCType* ty);
+  virtual void end(const FuncPtrGenType* ty);
 
   /*!
    * This is called after visiting the element type of an
@@ -104,7 +104,7 @@ public:
    * \brief End a function pointer type.
    * \param ty The type being visited.
    */
-  virtual void end(const ArrayGCType* ty);
+  virtual void end(const ArrayGenType* ty);
 
   /*!
    * This is called when visiting a native pointer.  This is a leaf
@@ -114,7 +114,7 @@ public:
    * \brief Visit a native pointer.
    * \param ty The type being visited.
    */
-  virtual void visit(const NativePtrGCType* ty);
+  virtual void visit(const NativePtrGenType* ty);
 
   /*!
    * This is called when visiting a GC pointer.  This is a leaf
@@ -124,7 +124,7 @@ public:
    * \brief Visit a native pointer.
    * \param ty The type being visited.
    */
-  virtual void visit(const GCPtrGCType* ty);
+  virtual void visit(const GCPtrGenType* ty);
 
   /*!
    * This is called when visiting a native type.  This is a leaf node
@@ -133,7 +133,7 @@ public:
    * \brief Visit a primitive type.
    * \param ty The type being visited.
    */
-  virtual void visit(const PrimGCType* ty);
+  virtual void visit(const PrimGenType* ty);
 
   /*!
    * This is called when beginning to visit the parameters of a
@@ -148,7 +148,7 @@ public:
    * \param ty The type being visited.
    * \return Whether or not to visit the parameters.
    */
-  virtual bool beginParams(const FuncPtrGCType* ty);
+  virtual bool beginParams(const FuncPtrGenType* ty);
 
   /*!
    * This is called after visiting the parameters of a function
@@ -157,7 +157,7 @@ public:
    * \brief End a function pointer type.
    * \param ty The type being visited.
    */
-  virtual void endParams(const FuncPtrGCType* ty);
+  virtual void endParams(const FuncPtrGenType* ty);
 };
 
 /*!
@@ -165,9 +165,9 @@ public:
  * context argument.  This can be used in conjunction with a builder
  * to construct trees without having to heap-allocate builders.
  *
- * \brief Contextual visitor class for GC types.
+ * \brief Contextual visitor class for generated types.
  */
-template<typename T> class GCTypeContextVisitor {
+template<typename T> class GenTypeCtxVisitor {
 public:
   /*!
    * This is called when beginning to visit a structure.  If the
@@ -186,7 +186,9 @@ public:
    * \param parent The context argument for the parent type.
    * \return Whether or not to visit the fields.
    */
-  virtual bool begin(const StructGCType* ty, T& ctx, T& parent) {
+  virtual bool begin(const StructGenType* ty,
+                     T& ctx,
+                     T& parent) {
     return true;
   }
 
@@ -208,7 +210,9 @@ public:
    * \param parent The context argument for the parent type.
    * \return Whether or not to visit the return type and parameters.
    */
-  virtual bool begin(const FuncPtrGCType* ty, T& ctx, T& parent) {
+  virtual bool begin(const FuncPtrGenType* ty,
+                     T& ctx,
+                     T& parent) {
     return true;
   }
 
@@ -226,7 +230,9 @@ public:
    * \param parent The context argument for the parent type.
    * \return Whether or not to visit the return type and parameters.
    */
-  virtual bool begin(const ArrayGCType* ty, T& ctx, T& parent) {
+  virtual bool begin(const ArrayGenType* ty,
+                     T& ctx,
+                     T& parent) {
     return true;
   }
 
@@ -241,7 +247,9 @@ public:
    * \param parent The context argument for the parent type.
    * \param ty The type being visited.
    */
-  virtual void end(const StructGCType* ty, T& ctx, T& parent) {}
+  virtual void end(const StructGenType* ty,
+                   T& ctx,
+                   T& parent) {}
 
   /*!
    * This is called after visiting the return type and parameters of a
@@ -255,7 +263,9 @@ public:
    * \param parent The context argument for the parent type.
    * \param ty The type being visited.
    */
-  virtual void end(const FuncPtrGCType* ty, T& ctx, T& parent) {}
+  virtual void end(const FuncPtrGenType* ty,
+                   T& ctx,
+                   T& parent) {}
 
   /*!
    * This is called after visiting the element type of an
@@ -269,7 +279,9 @@ public:
    * \param parent The context argument for the parent type.
    * \param ty The type being visited.
    */
-  virtual void end(const ArrayGCType* ty, T& ctx, T& parent) {}
+  virtual void end(const ArrayGenType* ty,
+                   T& ctx,
+                   T& parent) {}
 
   /*!
    * This is called when visiting a native pointer.  This is a leaf
@@ -280,7 +292,8 @@ public:
    * \param ty The type being visited.
    * \param parent The context for the parent.
    */
-  virtual void visit(const NativePtrGCType* ty, T& parent) {}
+  virtual void visit(const NativePtrGenType* ty,
+                     T& parent) {}
 
   /*!
    * This is called when visiting a GC pointer.  This is a leaf
@@ -291,7 +304,8 @@ public:
    * \param ty The type being visited.
    * \param parent The context for the parent.
    */
-  virtual void visit(const GCPtrGCType* ty, T& parent) {}
+  virtual void visit(const GCPtrGenType* ty,
+                     T& parent) {}
 
   /*!
    * This is called when visiting a native type.  This is a leaf node
@@ -301,7 +315,8 @@ public:
    * \param ty The type being visited.
    * \param parent The context for the parent.
    */
-  virtual void visit(const PrimGCType* ty, T& parent) {}
+  virtual void visit(const PrimGenType* ty,
+                     T& parent) {}
 
   /*!
    * This is called when beginning to visit the parameters of a
@@ -317,7 +332,10 @@ public:
    * \param parent The context for the parent.
    * \return Whether or not to visit the parameters.
    */
-  virtual bool beginParams(const FuncPtrGCType* ty, T& parent) { return true; }
+  virtual bool beginParams(const FuncPtrGenType* ty,
+                           T& parent) {
+    return true;
+  }
 
   /*!
    * This is called after visiting the parameters of a function
@@ -327,31 +345,45 @@ public:
    * \param ty The type being visited.
    * \param parent The context for the parent.
    */
-  virtual void endParams(const FuncPtrGCType* ty, T& parent) {}
+  virtual void endParams(const FuncPtrGenType* ty,
+                         T& parent) {}
 };
 
 // Some stock visitors, like a print visitor
 
-class GCTypePrintVisitor : public GCTypeContextVisitor<bool> {
+/*!
+ * \brief A visitor that prints out generated types to a stream.
+ */
+class GenTypePrintVisitor : public GenTypeCtxVisitor<bool> {
 private:
+  /*!
+   * Stream used to print out types.
+   */
   llvm::raw_ostream& stream;
 public:
-  GCTypePrintVisitor(llvm::raw_ostream& stream) : stream(stream) {}
+  /*!
+   * Initialize this GenTypePrintVisitor with a given stream.  This
+   * will be used to print out generated types.
+   *
+   * \brief Initialize with a given stream.
+   * \param stream Stream to which to print types.
+   */
+  GenTypePrintVisitor(llvm::raw_ostream& stream) : stream(stream) {}
 
-  virtual bool begin(const StructGCType* ty, bool&, bool&);
-  virtual bool begin(const FuncPtrGCType* ty, bool&, bool&);
-  virtual bool begin(const ArrayGCType* ty, bool&, bool&);
+  virtual bool begin(const StructGenType* ty, bool&, bool&);
+  virtual bool begin(const FuncPtrGenType* ty, bool&, bool&);
+  virtual bool begin(const ArrayGenType* ty, bool&, bool&);
 
-  virtual void end(const StructGCType* ty, bool&, bool&);
-  virtual void end(const FuncPtrGCType* ty, bool&, bool&);
-  virtual void end(const ArrayGCType* ty, bool&, bool&);
+  virtual void end(const StructGenType* ty, bool&, bool&);
+  virtual void end(const FuncPtrGenType* ty, bool&, bool&);
+  virtual void end(const ArrayGenType* ty, bool&, bool&);
 
-  virtual void visit(const NativePtrGCType* ty, bool&);
-  virtual void visit(const GCPtrGCType* ty, bool&);
-  virtual void visit(const PrimGCType* ty, bool&);
+  virtual void visit(const NativePtrGenType* ty, bool&);
+  virtual void visit(const GCPtrGenType* ty, bool&);
+  virtual void visit(const PrimGenType* ty, bool&);
 
-  virtual bool beginParams(const FuncPtrGCType* ty, bool&);
-  virtual void endParams(const FuncPtrGCType* ty, bool&);
+  virtual bool beginParams(const FuncPtrGenType* ty, bool&);
+  virtual void endParams(const FuncPtrGenType* ty, bool&);
 
   /*!
    * This function prints the given type by having this visitor visit
@@ -360,7 +392,7 @@ public:
    * \brief Print the given type.
    * \param ty The type to print.
    */
-  void print(const GCType* ty);
+  void print(const GenType* ty);
 
   /*!
    * This function prints the given type by having this visitor visit
@@ -369,7 +401,7 @@ public:
    * \brief Print the given type.
    * \param ty The type to print.
    */
-  void print(const GCType& ty);
+  void print(const GenType& ty);
 };
 
 #endif

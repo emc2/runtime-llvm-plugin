@@ -28,7 +28,7 @@ StructTypeBuilder::StructTypeBuilder(unsigned nfields,
   field(0), nfields(nfields), fields(new llvm::Type*[nfields]),
   tyname(tyname), packed(packed) {}
 
-StructTypeBuilder::StructTypeBuilder(const StructGCType* const gcty,
+StructTypeBuilder::StructTypeBuilder(const StructGenType* const gcty,
 				     const llvm::StringRef tyname) :
   TypeBuilder(), field(0), nfields(gcty->numFields()),
   fields(new llvm::Type*[gcty->numFields()]),
@@ -64,7 +64,7 @@ llvm::Type* StructTypeBuilder::build(llvm::Module& M) {
 ArrayTypeBuilder::ArrayTypeBuilder(const unsigned length) :
   elemty(NULL), length(length) {}
 
-ArrayTypeBuilder::ArrayTypeBuilder(const ArrayGCType* const gcty) :
+ArrayTypeBuilder::ArrayTypeBuilder(const ArrayGenType* const gcty) :
   elemty(NULL), length(gcty->getNumElems()) {}
 
 void ArrayTypeBuilder::add(llvm::Type* const ty) {
@@ -80,7 +80,7 @@ FuncPtrTypeBuilder::FuncPtrTypeBuilder(const unsigned nparams,
   param(0), nparams(nparams), params(new llvm::Type*[nparams]),
   retty(NULL), vararg(vararg) {}
 
-FuncPtrTypeBuilder::FuncPtrTypeBuilder(const FuncPtrGCType* gcty) :
+FuncPtrTypeBuilder::FuncPtrTypeBuilder(const FuncPtrGenType* gcty) :
   param(0), nparams(gcty->numParams()),
   params(new llvm::Type*[gcty->numParams()]),
   retty(NULL), vararg(gcty->isVararg()) {}

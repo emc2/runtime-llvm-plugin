@@ -23,14 +23,14 @@
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/ADT/StringMap.h"
-#include "GCType.h"
-#include "GCTypeVisitors.h"
+#include "GenType.h"
+#include "GenTypeVisitors.h"
 #include "ParseMetadataPass.h"
 
-bool parseGCTypes(llvm::Module& M,
-		  llvm::StringMap<const GCType*>& map) {
+bool parseGenTypes(llvm::Module& M,
+		  llvm::StringMap<const GenType*>& map) {
   const llvm::NamedMDNode* const md = M.getNamedMetadata("core.gc.types");
-  GCTypePrintVisitor print(llvm::outs());
+  GenTypePrintVisitor print(llvm::outs());
 
   for(unsigned int i = 0; i < md->getNumOperands(); i++) {
     const llvm::MDNode* const node = md->getOperand(i);
@@ -42,7 +42,7 @@ bool parseGCTypes(llvm::Module& M,
     */
     const llvm::MDNode* const desc =
       llvm::cast<llvm::MDNode>(node->getOperand(2));
-    const GCType* const newty = GCType::get(M, desc);
+    const GenType* const newty = GenType::get(M, desc, GenType::Mutable);
 
     map[tyname->getString()] = newty;
   }
@@ -53,7 +53,7 @@ bool parseGCTypes(llvm::Module& M,
 bool ParseMetadataPass::runOnModule(llvm::Module& M) {
   bool out = false;
 
-  out |= parseGCTypes(M, GCTypes);
+  out |= parseGenTypes(M, GenTypes);
 
   return out;
 }

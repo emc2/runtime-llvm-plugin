@@ -18,7 +18,7 @@
 #ifndef _TYPE_BUILDER_H_
 #define _TYPE_BUILDER_H_
 
-#include "GCType.h"
+#include "GenType.h"
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Module.h"
 
@@ -30,6 +30,11 @@
  */
 class TypeBuilder {
 public:
+
+  /*!
+   * Virtual destructor, which does nothing on the base class.
+   */
+  virtual ~TypeBuilder() {}
 
   /*!
    * This function adds a component type to the type this builder is
@@ -49,7 +54,7 @@ public:
    * \brief Build the type.
    * \param M The module in which to create the type.
    * \return The result type.
-   */ 
+   */
   virtual llvm::Type* build(llvm::Module& M) = 0;
 };
 
@@ -84,14 +89,14 @@ public:
 
   /*!
    * This constructor initializes a structure builder by copying
-   * information from a StructGCType.
+   * information from a StructGenType.
    *
    * \brief Create a structure builder.
    * \param gcty The GC structure type from which to initialize.
    * \param tyname The name to give the struture.  If the empty string
    *               is given, the struture will be unnamed.
    */
-  StructTypeBuilder(const StructGCType* gcty,
+  StructTypeBuilder(const StructGenType* gcty,
 		    const llvm::StringRef tyname = "");
 
   ~StructTypeBuilder();
@@ -117,7 +122,7 @@ public:
    * \brief Build the type.
    * \param M The module in which to create the type.
    * \return The result type.
-   */ 
+   */
   virtual llvm::Type* build(llvm::Module& M);
 };
 
@@ -143,12 +148,12 @@ public:
 
   /*!
    * This constructor initializes an array builder by copying
-   * information from an ArrayGCType.
+   * information from an ArrayGenType.
    *
-   * \brief Initialize an array builder from an ArrayGCType.
+   * \brief Initialize an array builder from an ArrayGenType.
    * \param gcty The GC array type from which to initialize.
    */
-  ArrayTypeBuilder(const ArrayGCType* gcty);
+  ArrayTypeBuilder(const ArrayGenType* gcty);
 
   /*!
    * This function adds the element type of the array.
@@ -167,7 +172,7 @@ public:
    * \brief Build the type.
    * \param M The module in which to create the type.
    * \return The result type.
-   */ 
+   */
   virtual llvm::Type* build(llvm::Module& M);
 };
 
@@ -196,12 +201,12 @@ public:
 
   /*!
    * This constructor initializes a function pointer builder by
-   * copying information from a FuncPtrGCType.
+   * copying information from a FuncPtrGenType.
    *
-   * \brief Initialize a function pointer builder from a FuncPtrGCType.
+   * \brief Initialize a function pointer builder from a FuncPtrGenType.
    * \param gcty The GC function pointer type from which to initialize.
    */
-  FuncPtrTypeBuilder(const FuncPtrGCType* gcty);
+  FuncPtrTypeBuilder(const FuncPtrGenType* gcty);
 
   ~FuncPtrTypeBuilder();
 
@@ -225,7 +230,7 @@ public:
    * \brief Build the type.
    * \param M The module in which to create the type.
    * \return The result type.
-   */ 
+   */
   virtual llvm::Type* build(llvm::Module& M);
 };
 

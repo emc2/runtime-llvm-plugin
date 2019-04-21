@@ -1,12 +1,10 @@
-runtime-llvm-plugin
-===================
+# runtime-llvm-plugin
 
 LLVM Plugins to generate runtime system glue from the output of the
 Simple IR code generator.
 
 
-Roadmap
-=======
+## Roadmap
 
 We get an LLVM Module with the following:
 
@@ -88,11 +86,9 @@ let the optimizer have a field day.  Make sure we get the right
 volatility, capture, and other flags set right though!!
 
 
-Future
-======
+# Future
 
-
-Closures:
+## Closures:
 
 It might be possible to wrangle LLVM to do GC-allocated stack frames.
 There is a "naked" flag for functions, which omits the usual
@@ -122,7 +118,7 @@ implemented by stashing args in the frame, and outputting wrapper
 functions which pull them out and then call the original function.
 
 
-Transactional memory:
+## Transactional memory:
 
 Commit and rollback strategies could be implemented using this
 compilation style.  With safepoints, it's also possible to do

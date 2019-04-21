@@ -26,15 +26,15 @@
 
 /*!
  * This pass parses all metadata needed for GC realization.  The GC
- * type metadata will be parsed into GCType objects, and used to
- * populate the StringMap GCTypes accordingly.
+ * type metadata will be parsed into GenType objects, and used to
+ * populate the StringMap GenTypes accordingly.
  *
  * \brief A pass to parse all the metadata.
  */
 struct ParseMetadataPass : public llvm::ModulePass {
   static char ID;
 
-  llvm::StringMap<const GCType*> GCTypes;
+  llvm::StringMap<const GenType*> GenTypes;
 
   ParseMetadataPass() : llvm::ModulePass(ID) {}
 

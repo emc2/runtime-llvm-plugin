@@ -18,11 +18,12 @@
 
 #define __STDC_LIMIT_MACROS 1
 #define __STDC_CONSTANT_MACROS 1
-#include "GCType.h"
-#include "GCTypeVisitors.h"
+#include "GenType.h"
+#include "GenTypeVisitors.h"
 
-bool GCTypePrintVisitor::begin(const StructGCType* const ty,
-			       bool& ctx, bool& first) {
+bool GenTypePrintVisitor::begin(const StructGenType* const ty,
+                                bool& ctx,
+                                bool& first) {
   ctx = true;
 
   if(!first)
@@ -33,8 +34,9 @@ bool GCTypePrintVisitor::begin(const StructGCType* const ty,
   return true;
 }
 
-bool GCTypePrintVisitor::begin(const ArrayGCType* const ty,
-			       bool& ctx, bool& first) {
+bool GenTypePrintVisitor::begin(const ArrayGenType* const ty,
+                                bool& ctx,
+                                bool& first) {
   ctx = true;
 
   if(!first)
@@ -45,8 +47,9 @@ bool GCTypePrintVisitor::begin(const ArrayGCType* const ty,
   return true;
 }
 
-bool GCTypePrintVisitor::begin(const FuncPtrGCType* const ty,
-			       bool& ctx, bool& first) {
+bool GenTypePrintVisitor::begin(const FuncPtrGenType* const ty,
+                                bool& ctx,
+                                bool& first) {
   ctx = true;
 
   if(!first)
@@ -57,13 +60,17 @@ bool GCTypePrintVisitor::begin(const FuncPtrGCType* const ty,
   return true;
 }
 
-void GCTypePrintVisitor::end(const StructGCType*, bool& first, bool&) {
+void GenTypePrintVisitor::end(const StructGenType*,
+                              bool& first,
+                              bool&) {
   first = false;
   stream << " }";
   stream.flush();
 }
 
-void GCTypePrintVisitor::end(const ArrayGCType* const ty, bool& first, bool&) {
+void GenTypePrintVisitor::end(const ArrayGenType* const ty,
+                              bool& first,
+                              bool&) {
   first = false;
   if(ty->isSized())
     stream << " x " << ty->getNumElems();
@@ -72,12 +79,12 @@ void GCTypePrintVisitor::end(const ArrayGCType* const ty, bool& first, bool&) {
   stream.flush();
 }
 
-void GCTypePrintVisitor::end(const FuncPtrGCType*, bool& first, bool&) {
+void GenTypePrintVisitor::end(const FuncPtrGenType*, bool& first, bool&) {
   first = false;
 }
 
-void GCTypePrintVisitor::visit(const PrimGCType* const ty,
-			       bool& first) {
+void GenTypePrintVisitor::visit(const PrimGenType* const ty,
+                                bool& first) {
   if(!first)
     stream << ", ";
 
@@ -92,8 +99,8 @@ void GCTypePrintVisitor::visit(const PrimGCType* const ty,
   stream.flush();
 }
 
-void GCTypePrintVisitor::visit(const NativePtrGCType* const ty,
-			       bool& first) {
+void GenTypePrintVisitor::visit(const NativePtrGenType* const ty,
+                                bool& first) {
   if(!first)
     stream << ", ";
 
@@ -104,8 +111,8 @@ void GCTypePrintVisitor::visit(const NativePtrGCType* const ty,
   stream.flush();
 }
 
-void GCTypePrintVisitor::visit(const GCPtrGCType* const ty,
-			       bool& first) {
+void GenTypePrintVisitor::visit(const GCPtrGenType* const ty,
+                                bool& first) {
   if(!first)
     stream << ", ";
 
@@ -117,23 +124,23 @@ void GCTypePrintVisitor::visit(const GCPtrGCType* const ty,
   stream.flush();
 }
 
-bool GCTypePrintVisitor::beginParams(const FuncPtrGCType*, bool&) {
+bool GenTypePrintVisitor::beginParams(const FuncPtrGenType*, bool&) {
   stream << "(";
   stream.flush();
   return true;
 }
 
-void GCTypePrintVisitor::endParams(const FuncPtrGCType*, bool&) {
+void GenTypePrintVisitor::endParams(const FuncPtrGenType*, bool&) {
   stream << ")";
   stream.flush();
 }
 
-void GCTypePrintVisitor::print(const GCType* ty) {
+void GenTypePrintVisitor::print(const GenType* ty) {
   bool first = true;
   ty->accept(*this, first);
 }
 
-void GCTypePrintVisitor::print(const GCType& ty) {
+void GenTypePrintVisitor::print(const GenType& ty) {
   bool first = true;
   ty.accept(*this, first);
 }

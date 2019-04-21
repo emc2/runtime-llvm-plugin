@@ -15,10 +15,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
  * 02110-1301 USA
  */
-#ifndef _GC_TYPE_TRACE_GEN_H_
-#define _GC_TYPE_TRACE_GEN_H_
+#ifndef _TRACE_GENERATOR_H_
+#define _TRACE_GENERATOR_H_
 
-#include "GCTypeVisitors.h"
+#include "GenTypeVisitors.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/Instructions.h"
@@ -63,37 +63,54 @@ struct IndexState {
  *
  * \brief A base class for generating code for copying GC.
  */
-class GCTypeCopyGCTraceGen :
-  public GCTypeContextVisitor<struct IndexState> {
+class CopyGCTraceGen : public GenTypeCtxVisitor<struct IndexState> {
 protected:
+  /*!
+   * \brief The current GC context value.
+   */
   llvm::Value* const gcctx;
+
+  /*!
+   * \brief The current basic block.
+   */
   llvm::BasicBlock* BB;
 public:
-  GCTypeCopyGCTraceGen(const llvm::Value* src,
-		       const llvm::Value* dst,
-		       const llvm::Value* gcctx,
-		       const llvm::BasicBlock* BB);
+  /*!
+   * Initialize with a source value, destination value, context value,
+   * and basic block.
+   *
+   * \brief Initialize with source and destination pointers, context,
+   *        and basic block LLVM values.
+   * \param src The source pointer LLVM value.
+   * \param dst The destination pointer LLVM value.
+   * \param gccty The GC context LLVM value.
+   * \param BB The LLVM basic block.
+   */
+  CopyGCTraceGen(const llvm::Value* src,
+                 const llvm::Value* dst,
+                 const llvm::Value* gcctx,
+                 const llvm::BasicBlock* BB);
 
   // These functions will implement generation of the "skeleton" of
   // getelementptr and loops that will traverse the type.
-  virtual const llvm::Value* initial(const GCType* ty);
+  virtual const llvm::Value* initial(const GenType* ty);
 
-  virtual bool begin(const StructGCType* ty, struct IndexState&,
+  virtual bool begin(const StructGenType* ty, struct IndexState&,
 		     struct IndexState&);
-  virtual bool begin(const FuncPtrGCType* ty, struct IndexState&,
+  virtual bool begin(const FuncPtrGenType* ty, struct IndexState&,
 		     struct IndexState&);
-  virtual bool begin(const ArrayGCType* ty, struct IndexState&,
+  virtual bool begin(const ArrayGenType* ty, struct IndexState&,
 		     struct IndexState&);
 
-  virtual void end(const ArrayGCType* ty, struct IndexState&,
+  virtual void end(const ArrayGenType* ty, struct IndexState&,
 		   struct IndexState&);
 
-  virtual void visit(const NativePtrGCType* ty, struct IndexState&);
-  virtual void visit(const GCPtrGCType* ty, struct IndexState&);
-  virtual void visit(const PrimGCType* ty, struct IndexState&);
+  virtual void visit(const NativePtrGenType* ty, struct IndexState&);
+  virtual void visit(const GCPtrGenType* ty, struct IndexState&);
+  virtual void visit(const PrimGenType* ty, struct IndexState&);
 
-  virtual bool descend(const StructGCType* ty) = 0;
-  virtual bool descend(const ArrayGCType* ty) = 0;
+  virtual bool descend(const StructGenType* ty) = 0;
+  virtual bool descend(const ArrayGenType* ty) = 0;
 
   /*!
    * This function should generate copy code for a native pointer
@@ -106,7 +123,7 @@ public:
    * \param src An LLVM value with the source address.
    * \param dst An LLVM value with the destination address.
    */
-  virtual void visit(const NativePtrGCType* gcty,
+  virtual void visit(const NativePtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst) = 0;
 
@@ -121,7 +138,7 @@ public:
    * \param src An LLVM value with the source address.
    * \param dst An LLVM value with the destination address.
    */
-  virtual void visit(const GCPtrGCType* gcty,
+  virtual void visit(const GCPtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst) = 0;
 
@@ -136,7 +153,7 @@ public:
    * \param src An LLVM value with the source address.
    * \param dst An LLVM value with the destination address.
    */
-  virtual void visit(const FuncPtrGCType* gcty,
+  virtual void visit(const FuncPtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst) = 0;
   /*!
@@ -150,13 +167,13 @@ public:
    * \param src An LLVM value with the source address.
    * \param dst An LLVM value with the destination address.
    */
-  virtual void visit(const PrimGCType* gcty,
+  virtual void visit(const PrimGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst) = 0;
 };
 
 /*!
- * This is a subclass of GCTypeVisitor which creates GC copy code for
+ * This is a subclass of GenTypeVisitor which creates GC copy code for
  * a given GC type.  This is designed to fill in the body of a
  * function with instructions that copy an object from the old heap to
  * the new heap.
@@ -165,26 +182,26 @@ public:
  *
  * \brief A visitor which creates copy code.
  */
-class GCTypeCopyCodeGen : public GCTypeCopyGCTraceGen {
+class CopyCodeGen : public CopyGCTraceGen {
 public:
-  virtual bool descend(const StructGCType* ty);
-  virtual bool descend(const ArrayGCType* ty);
-  virtual void visit(const NativePtrGCType* gcty,
+  virtual bool descend(const StructGenType* ty);
+  virtual bool descend(const ArrayGenType* ty);
+  virtual void visit(const NativePtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst);
-  virtual void visit(const GCPtrGCType* gcty,
+  virtual void visit(const GCPtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst);
-  virtual void visit(const PrimGCType* gcty,
+  virtual void visit(const PrimGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst);
-  virtual void visit(const FuncPtrGCType* gcty,
+  virtual void visit(const FuncPtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst);
 };
 
 /*!
- * This is a subclass of GCTypeVisitor which creates GC syncronization
+ * This is a subclass of GenTypeVisitor which creates GC syncronization
  * code for a given GC type.  This is designed to fill in the body of
  * a function with instructions that propagate changes from the source
  * heap to the destination.
@@ -194,20 +211,20 @@ public:
  *
  * \brief A visitor which creates copy code.
  */
-class GCTypeSyncCodeGen  : public GCTypeCopyGCTraceGen {
+class SyncCodeGen  : public CopyGCTraceGen {
 public:
-  virtual bool descend(const StructGCType* ty);
-  virtual bool descend(const ArrayGCType* ty);
-  virtual void visit(const NativePtrGCType* gcty,
+  virtual bool descend(const StructGenType* ty);
+  virtual bool descend(const ArrayGenType* ty);
+  virtual void visit(const NativePtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst);
-  virtual void visit(const GCPtrGCType* gcty,
+  virtual void visit(const GCPtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst);
-  virtual void visit(const PrimGCType* gcty,
+  virtual void visit(const PrimGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst);
-  virtual void visit(const FuncPtrGCType* gcty,
+  virtual void visit(const FuncPtrGenType* gcty,
 		     const llvm::Value* src,
 		     const llvm::Value* dst);
 };

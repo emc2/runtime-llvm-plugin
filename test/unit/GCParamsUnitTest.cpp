@@ -17,20 +17,10 @@
  */
 
 #include "GCParams.h"
-#include <cppunit/extensions/HelperMacros.h>
+#include <gtest/gtest.h>
 
-class GCParamsUnitTest : public CppUnit::TestFixture  {
 
-  CPPUNIT_TEST_SUITE(GCParamsUnitTest);
-  CPPUNIT_TEST(testGCParams);
-  CPPUNIT_TEST_SUITE_END(); 
-
-  void testGCParams();
-};
-
-CPPUNIT_TEST_SUITE_REGISTRATION(GCParamsUnitTest);
-
-void GCParamsUnitTest::testGCParams() {
+TEST(GCParams, testGCParams) {
   GCParams writeLogging(true, false, false, false,
                         false, false, false, false);
   GCParams readBarriers(false, true, false, false,
@@ -47,12 +37,12 @@ void GCParamsUnitTest::testGCParams() {
                      false, false, true, false);
   GCParams traceFuncs(false, false, false, false,
                       false, false, false, true);
-  CPPUNIT_ASSERT(writeLogging.writeLogging);
-  CPPUNIT_ASSERT(readBarriers.readBarriers);
-  CPPUNIT_ASSERT(clusterize.clusterize);
-  CPPUNIT_ASSERT(generational.generational);
-  CPPUNIT_ASSERT(doublePtrs.doublePtrs);
-  CPPUNIT_ASSERT(copyFuncs.copyFuncs);
-  CPPUNIT_ASSERT(moveFuncs.moveFuncs);
-  CPPUNIT_ASSERT(traceFuncs.traceFuncs);
+  EXPECT_TRUE(writeLogging.writeLogging);
+  EXPECT_TRUE(readBarriers.readBarriers);
+  EXPECT_TRUE(clusterize.clusterize);
+  EXPECT_TRUE(generational.generational);
+  EXPECT_TRUE(doublePtrs.doublePtrs);
+  EXPECT_TRUE(copyFuncs.copyFuncs);
+  EXPECT_TRUE(moveFuncs.moveFuncs);
+  EXPECT_TRUE(traceFuncs.traceFuncs);
 }

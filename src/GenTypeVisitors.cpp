@@ -18,17 +18,17 @@
 
 #define __STDC_LIMIT_MACROS 1
 #define __STDC_CONSTANT_MACROS 1
-#include "GCType.h"
-#include "GCTypeVisitors.h"
+#include "GenType.h"
+#include "GenTypeVisitors.h"
 
-bool GCTypeVisitor::begin(const StructGCType*) { return true; }
-bool GCTypeVisitor::begin(const FuncPtrGCType*) { return true; }
-bool GCTypeVisitor::begin(const ArrayGCType*) { return true; }
-void GCTypeVisitor::end(const StructGCType*) {}
-void GCTypeVisitor::end(const FuncPtrGCType*) {}
-void GCTypeVisitor::end(const ArrayGCType*) {}
-void GCTypeVisitor::visit(const GCPtrGCType*) {}
-void GCTypeVisitor::visit(const PrimGCType*) {}
-void GCTypeVisitor::visit(const NativePtrGCType*) {}
-bool GCTypeVisitor::beginParams(const FuncPtrGCType*) { return true; }
-void GCTypeVisitor::endParams(const FuncPtrGCType*) {}
+bool GenTypeVisitor::begin(const StructGenType*) { return true; }
+bool GenTypeVisitor::begin(const FuncPtrGenType*) { return true; }
+bool GenTypeVisitor::begin(const ArrayGenType*) { return true; }
+void GenTypeVisitor::end(const StructGenType*) {}
+void GenTypeVisitor::end(const FuncPtrGenType*) {}
+void GenTypeVisitor::end(const ArrayGenType*) {}
+void GenTypeVisitor::visit(const GCPtrGenType*) {}
+void GenTypeVisitor::visit(const PrimGenType*) {}
+void GenTypeVisitor::visit(const NativePtrGenType*) {}
+bool GenTypeVisitor::beginParams(const FuncPtrGenType*) { return true; }
+void GenTypeVisitor::endParams(const FuncPtrGenType*) {}
