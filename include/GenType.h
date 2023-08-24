@@ -221,7 +221,22 @@ private:
   /*!
    * \brief The underlying LLVM type.
    */
-  llvm::Type *const typeRef;
+  llvm::Type* const typeRef;
+
+  /*!
+   * This should take one argument: a pointer to the top-level type,
+   * and return a value of this type.
+   *
+   * \brief Accessor function.
+   */
+  llvm::Function* const getFunc;
+
+  /*!
+   * This should be null if the mutability is Immutable.
+   *
+   * \brief Modifier function.
+   */
+  llvm::Function* const setFunc;
 
   /*!
    * \brief Initialize with an underlying type and mutability.
@@ -229,8 +244,11 @@ private:
    * \param mut The mutability.
    */
   PrimGenType(llvm::Type* const typeRef,
-              const Mutability mut) :
-    GenType(PrimTypeID, mut), typeRef(typeRef) {}
+              const Mutability mut,
+              llvm::Function* const getFunc,
+              llvm::Function* const setFunc) :
+    GenType(PrimTypeID, mut), typeRef(typeRef),
+    getFunc(getFunc), setFunc(setFunc) {}
 
   /*!
    * \brief A distinguished element for representing unit types.
