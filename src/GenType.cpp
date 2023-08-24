@@ -223,7 +223,7 @@ const PrimGCType* PrimGCType::get(llvm::LLVMContext &C,
 // Format: GEN_TYPE_UNIT
 const PrimGenType* PrimGenType::getUnit() {
   if(NULL == unitGenTy)
-    unitGenTy = new PrimGenType(NULL, Immutable);;
+    unitGenTy = new PrimGenType(NULL, Immutable, NULL, NULL);
 
   return unitGenTy;
 }
@@ -236,33 +236,52 @@ const PrimGenType* PrimGenType::getNamed(const llvm::Module& M,
   const llvm::MDString* const name =
     llvm::cast<llvm::MDString>(md->getOperand(1));
   llvm::Type* const ty = getType(M, name);
+  llvm::Function* const accessFunc = llvm::cast<llvm::Function>
+    (llvm::cast<llvm::ValueAsMetadata>(md->getOperand(2))->getValue());
+  llvm::Function* const modifyFunc = mut == Immutable ? NULL :
+    llvm::cast<llvm::Function>(llvm::cast<llvm::ValueAsMetadata>
+                               (md->getOperand(3))->getValue());
 
-  return new PrimGenType(ty, mut);
+  return new PrimGenType(ty, mut, accessFunc, modifyFunc);
 }
 
-// Format: GEN_TYPE_INT size
+// Format: GEN_TYPE_INT size accessor modifier?
 const PrimGenType* PrimGenType::getInt(const llvm::Module& M,
                                        const llvm::MDNode* const md,
                                        const Mutability mut) {
   const unsigned size = getMDIntArg(md, 1);
   llvm::Type* const ty = llvm::Type::getIntNTy(M.getContext(), size);
+  llvm::Function* const accessFunc = llvm::cast<llvm::Function>
+    (llvm::cast<llvm::ValueAsMetadata>(md->getOperand(2))->getValue());
+  llvm::Function* const modifyFunc = mut == Immutable ? NULL :
+    llvm::cast<llvm::Function>(llvm::cast<llvm::ValueAsMetadata>
+                               (md->getOperand(3))->getValue());
 
-  return new PrimGenType(ty, mut);
+  return new PrimGenType(ty, mut, accessFunc, modifyFunc);
 }
 
-// Format: GEN_TYPE_FLOAT size
+// Format: GEN_TYPE_FLOAT size accessor modifier?
 const PrimGenType* PrimGenType::getFloat(const llvm::Module& M,
                                          const llvm::MDNode* const md,
                                          const Mutability mut) {
   llvm::LLVMContext& C = M.getContext();
   const unsigned size = getMDIntArg(md, 1);
+  llvm::Function* const accessFunc = llvm::cast<llvm::Function>
+    (llvm::cast<llvm::ValueAsMetadata>(md->getOperand(2))->getValue());
+  llvm::Function* const modifyFunc = mut == Immutable ? NULL :
+    llvm::cast<llvm::Function>(llvm::cast<llvm::ValueAsMetadata>
+                               (md->getOperand(3))->getValue());
 
   switch(size) {
   default: return NULL;
-  case 16: return new PrimGenType(llvm::Type::getHalfTy(C), mut);
-  case 32: return new PrimGenType(llvm::Type::getFloatTy(C), mut);
-  case 64: return new PrimGenType(llvm::Type::getDoubleTy(C), mut);
-  case 128: return new PrimGenType(llvm::Type::getFP128Ty(C), mut);
+  case 16: return new PrimGenType(llvm::Type::getHalfTy(C), mut,
+                                  accessFunc, modifyFunc);
+  case 32: return new PrimGenType(llvm::Type::getFloatTy(C), mut,
+                                  accessFunc, modifyFunc);
+  case 64: return new PrimGenType(llvm::Type::getDoubleTy(C), mut,
+                                  accessFunc, modifyFunc);
+  case 128: return new PrimGenType(llvm::Type::getFP128Ty(C), mut,
+                                   accessFunc, modifyFunc);
   }
 
 }

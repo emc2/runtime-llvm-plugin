@@ -38,7 +38,8 @@
 class GenType {
 public:
   /*!
-   * Used for the type ID field.
+   * Tags, used internally for the type ID field.  These are used with
+   * narrow and other functionality.
    *
    * \brief Enumeration for identifying kinds of generated types.
    */
@@ -229,14 +230,14 @@ private:
    *
    * \brief Accessor function.
    */
-  llvm::Function* const getFunc;
+  llvm::Function* const accessFunc;
 
   /*!
    * This should be null if the mutability is Immutable.
    *
    * \brief Modifier function.
    */
-  llvm::Function* const setFunc;
+  llvm::Function* const modifyFunc;
 
   /*!
    * \brief Initialize with an underlying type and mutability.
@@ -245,10 +246,10 @@ private:
    */
   PrimGenType(llvm::Type* const typeRef,
               const Mutability mut,
-              llvm::Function* const getFunc,
-              llvm::Function* const setFunc) :
+              llvm::Function* const accessFunc,
+              llvm::Function* const modifyFunc) :
     GenType(PrimTypeID, mut), typeRef(typeRef),
-    getFunc(getFunc), setFunc(setFunc) {}
+    accessFunc(accessFunc), modifyFunc(modifyFunc) {}
 
   /*!
    * \brief A distinguished element for representing unit types.
@@ -369,7 +370,7 @@ public:
 };
 
 /*!
- * Unlike LLVM arrays, these arrays may be of indeterminant size.
+ * Unlike LLVM arrays, these arrays may be of indeterminate size.
  *
  * \brief An array in a generated type
  */
@@ -676,7 +677,7 @@ public:
     */
     Mobile,
     /*!
-     * This represents a pointer which the garbage collector cannot
+     * This represents a pointer that the garbage collector cannot
      * move.  This is suitable for I/O buffers, among other things.
      *
      * \brief Immobile pointer.
